@@ -81,11 +81,6 @@ You can either:
 Sends response data to client
 
 
-###JsonSchemaValidator
-Validating request data. uses *justinrainbow/json-schema*
-
-see http://json-schema.org/documentation.html for JSON schema format documentation
-
 
 ###*IApiAuthenticator*
 Interface for API authentication service
