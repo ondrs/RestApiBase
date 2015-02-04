@@ -23,9 +23,9 @@ $router[] = $route;
 // optional - set HTTP method to presenter action translation table. (these are defults)
 $route->setRestDictionary(array(
 	'GET' => 'get',
-	'POST' => 'append',
-	'PUT' => 'create',
-	'PATCH' => 'update',
+	'POST' => 'post',
+	'PUT' => 'put',
+	'PATCH' => 'patch',
 	'DELETE' => 'delete',
 ))
 ```

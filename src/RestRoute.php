@@ -25,9 +25,9 @@ class RestRoute extends Route
 
     protected static $restDictionary = array(
         'GET' => 'get', // returns a resource "GET /me/articles"
-        'POST' => 'append', // appends a new item in the list of resources "POST me/articles"
-        'PUT' => 'create', // creates or replaces a resource "PUT /me/articles/1"
-        'PATCH' => 'update', // partialy modifies a resource "PATCH /me/artices/1"
+        'POST' => 'post', // appends a new item in the list of resources "POST me/articles"
+        'PUT' => 'put', // creates or replaces a resource "PUT /me/articles/1"
+        'PATCH' => 'patch', // partialy modifies a resource "PATCH /me/artices/1"
         'DELETE' => 'delete', // deletes a resource "DELETE /me/articles/1"
     );
 
