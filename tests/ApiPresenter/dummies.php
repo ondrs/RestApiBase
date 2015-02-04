@@ -14,6 +14,7 @@ class DummyPresenter extends ApiPresenter
 	{
 		$this->minApiVersion = 1;
 		$this->maxApiVersion = 2;
+		$this->checkSsl = TRUE;
 	}
 
 	public function actionGet()

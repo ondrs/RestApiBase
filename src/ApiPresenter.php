@@ -29,241 +29,200 @@ use Nette\Utils\JsonException;
 abstract class ApiPresenter implements Nette\Application\IPresenter
 {
 
-	const MESSAGE_SSL_IS_REQUIRED = 'SSL is required.';
-	const MESSAGE_MINIMAL_SUPPORTED_API_VERSION = 'Minimal supported API version is %s.';
-	const MESSAGE_MAXIMAL_SUPPORTED_API_VERSION = 'Maximal supported API version is %s.';
-	const MESSAGE_AUTHORIZATION_FAILED = 'Authorization failed.';
-	const MESSAGE_METHOD_IS_NOT_ALLOWED = 'Method %s is not allowed.';
-	const MESSAGE_INVALID_JSON_DATA = 'Invalid JSON data.';
-	const MESSAGE_INVALID_PARAMETER = 'Invalid parameter `%s`: \'%s\'.';
-	const MESSAGE_MISSING_PARAMETER = 'Missing parameter `%s`.';
+    const MESSAGE_SSL_IS_REQUIRED = 'SSL is required.';
+    const MESSAGE_MINIMAL_SUPPORTED_API_VERSION = 'Minimal supported API version is %s.';
+    const MESSAGE_MAXIMAL_SUPPORTED_API_VERSION = 'Maximal supported API version is %s.';
+    const MESSAGE_AUTHORIZATION_FAILED = 'Authorization failed.';
+    const MESSAGE_METHOD_IS_NOT_ALLOWED = 'Method %s is not allowed.';
+    const MESSAGE_INVALID_JSON_DATA = 'Invalid JSON data.';
+    const MESSAGE_INVALID_PARAMETER = 'Invalid parameter `%s`: \'%s\'.';
+    const MESSAGE_MISSING_PARAMETER = 'Missing parameter `%s`.';
 
-	/** @var Container */
-	protected $context;
+    /** @var Container */
+    protected $context;
 
-	/** @var IApiAuthenticator */
-	protected $authenticator;
+    /** @var IApiAuthenticator */
+    protected $authenticator;
 
-	/** @var IApiLogger */
-	protected $logger;
+    /** @var IApiLogger */
+    protected $logger;
 
-	/** @var Http\Context */
-	protected $httpContext;
+    /** @var Http\Context */
+    protected $httpContext;
 
-	/** @var Http\Request */
-	protected $httpRequest;
+    /** @var Http\Request */
+    protected $httpRequest;
 
-	/** @var Http\Response */
-	protected $httpResponse;
-
-
-	/** @var bool */
-	protected $checkSsl = TRUE;
-
-	/** @var bool */
-	protected $checkAccess = TRUE;
-
-	/** @var int|NULL */
-	protected $minApiVersion = NULL;
-
-	/** @var int|NULL */
-	protected $maxApiVersion = NULL;
+    /** @var Http\Response */
+    protected $httpResponse;
 
 
-	/** @var Request */
-	protected $request;
+    /** @var bool */
+    protected $checkSsl = FALSE;
 
-	/** @var ApiResponse */
-	protected $response;
+    /** @var bool */
+    protected $checkAccess = FALSE;
 
-	/** @var string nedekódovaná POST data */
-	protected $rawPostData;
+    /** @var int|NULL */
+    protected $minApiVersion = NULL;
 
-	/** @var \StdClass data požadavku dekódovaná z JSONu */
-	protected $data;
-
-	/** @var array vracená data */
-	protected $payload = array();
-
-	/** @var IApiUser */
-	protected $user;
+    /** @var int|NULL */
+    protected $maxApiVersion = NULL;
 
 
-	final public function injectPrimary(Container $context, Http\Context $httpContext, Http\IRequest $httpRequest, Http\Response $httpResponse)
-	{
-		if ($this->context !== NULL) {
-			throw new Nette\InvalidStateException("Method " . __METHOD__ . " is intended for initialization and should not be called more than once.");
-		}
+    /** @var Request */
+    protected $request;
 
-		$this->context = $context;
-		$this->httpContext = $httpContext;
-		$this->httpRequest = $httpRequest;
-		$this->httpResponse = $httpResponse;
-	}
+    /** @var ApiResponse */
+    protected $response;
 
-	protected function startup()
-	{
-		// pass
-	}
+    /** @var string nedekódovaná POST data */
+    protected $rawPostData;
 
-	public function run(Request $request)
-	{
-		$this->request = $request;
+    /** @var \StdClass data požadavku dekódovaná z JSONu */
+    protected $data;
 
-		try
-		{
-			$this->startup();
+    /** @var array vracená data */
+    protected $payload = array();
 
-			$this->response = NULL;
+    /** @var IApiUser */
+    protected $user;
 
-			if ($this->checkSsl)
-			{
-				$this->checkSsl();
-			}
 
-			$this->checkApiVersion();
+    final public function injectPrimary(Container $context, Http\Context $httpContext, Http\IRequest $httpRequest, Http\Response $httpResponse)
+    {
+        if ($this->context !== NULL) {
+            throw new Nette\InvalidStateException("Method " . __METHOD__ . " is intended for initialization and should not be called more than once.");
+        }
 
-			$name = $this->request->presenterName;
-			$action = isset($this->request->parameters['action']) ? $this->request->parameters['action'] : 'default';
+        $this->context = $context;
+        $this->httpContext = $httpContext;
+        $this->httpRequest = $httpRequest;
+        $this->httpResponse = $httpResponse;
+    }
 
-			// kontrola dat
-			if ($request->isMethod('post') || $request->isMethod('put') || $request->isMethod('patch'))
-			{
-				$this->getRawPostData();
-				$this->prepareData($name, $action);
-			}
+    protected function startup()
+    {
+        // pass
+    }
 
-			// kontrola přístupu
-			if ($this->checkAccess)
-			{
-				$this->checkAccess($action);
-			}
+    public function run(Request $request)
+    {
+        $this->request = $request;
 
-			$this->despatch($request, $action);
+        try {
+            $this->startup();
 
-			if (!$this->response)
-			{
-				$this->response = new ApiResponse($this->payload, ApiResponse::S200_OK);
-			}
-		}
-		catch (Nette\Application\AbortException $e)
-		{
-			// pass
-		}
-		catch (\Exception $e)
-		{
-			Nette\Diagnostics\Debugger::log($e);
-			$this->response = NULL;
-		}
+            $this->response = NULL;
 
-		if (!$this->response)
-		{
-			$this->response = new ApiResponse(array(), ApiResponse::S500_INTERNAL_SERVER_ERROR);
-		}
+            if ($this->checkSsl) {
+                $this->checkSsl();
+            }
 
-		if (isset($this->logger))
-		{
-			$this->logRequest($request);
-		}
+            $this->checkApiVersion();
 
-		return $this->response;
-	}
+            $action = isset($this->request->parameters['action']) ? $this->request->parameters['action'] : 'default';
 
-	/**
-	 * Kontroluje SSL
-	 */
-	protected function checkSsl()
-	{
-		if (!$this->request->hasFlag(Request::SECURED))
-		{
-			$this->sendErrorResponse(ApiResponse::S403_FORBIDDEN, static::MESSAGE_SSL_IS_REQUIRED);
-		}
-	}
+            // kontrola přístupu
+            if ($this->checkAccess || $this->authenticator instanceof IApiAuthenticator) {
+                $this->checkAccess($action);
+            }
 
-	/**
-	 * Kontroluje verzi API
-	 */
-	protected function checkApiVersion()
-	{
-		if (isset($this->minApiVersion) && $this->getHeader('X-Api-Version') < $this->minApiVersion)
-		{
-			$this->sendErrorResponse(ApiResponse::S426_UPGRADE_REQUIRED, sprintf(static::MESSAGE_MINIMAL_SUPPORTED_API_VERSION, $this->minApiVersion));
-		}
-		if (isset($this->maxApiVersion) && $this->getHeader('X-Api-Version') > $this->maxApiVersion)
-		{
-			$this->sendErrorResponse(ApiResponse::S426_UPGRADE_REQUIRED, sprintf(static::MESSAGE_MAXIMAL_SUPPORTED_API_VERSION, $this->maxApiVersion));
-		}
-	}
+            $this->despatch($request, $action);
 
-	/**
-	 * Kontroluje přístup
-	 *
-	 * @param string
-	 */
-	protected function checkAccess($action)
-	{
-		$apiKey = $this->getHeader('X-Api-Key');
-		if (!$this->authenticator)
-		{
-			throw new Nette\InvalidStateException('ApiPresenter: API authenticator is not set, but $checkAccess is on.');
-		}
-		$this->user = $this->authenticator->authenticate($apiKey, $this->data);
-		if ($this->user === NULL)
-		{
-			$this->sendErrorResponse(ApiResponse::S401_UNAUTHORIZED, static::MESSAGE_AUTHORIZATION_FAILED);
-		}
-	}
+            if (!$this->response) {
+                $this->response = new ApiResponse($this->payload, ApiResponse::S200_OK);
+            }
+        } catch (Nette\Application\AbortException $e) {
+            // pass
+        } catch (\Exception $e) {
+            Nette\Diagnostics\Debugger::log($e);
+            $this->response = NULL;
+        }
 
-	/**
-	 * Volá příslušnou akci presenteru
-	 *
-	 * @param Request
-	 * @param string
-	 */
-	protected function despatch(Request $request, $action)
-	{
-		$method = 'action' . $action;
-		if (!method_exists($this, $method))
-		{
-			$this->sendErrorResponse(ApiResponse::S405_METHOD_NOT_ALLOWED, sprintf(static::MESSAGE_METHOD_IS_NOT_ALLOWED, strtoupper($request->method)));
-		}
-		call_user_func_array(array($this, $method), $request->parameters);
-	}
+        if (!$this->response) {
+            $this->response = new ApiResponse(array(), ApiResponse::S500_INTERNAL_SERVER_ERROR);
+        }
 
-	/**
-	 * Získává data požadavku
-	 */
-	protected function getRawPostData()
-	{
-		$this->rawPostData = file_get_contents('php://input');
-	}
+        if (isset($this->logger)) {
+            $this->logRequest($request);
+        }
 
-	/**
-	 * Parsuje a validuje data rekvestu
-	 *
-	 * @param string
-	 */
-	protected function prepareData($presenter, $action)
-	{
-		// není-li anotací @schema řečeno jinak ...
-		$ref = new ClassType($this);
-		$schema = $ref->getMethod('action' . $action)->getAnnotation('schema');
+        return $this->response;
+    }
 
-		// nenačítá a nevaliduje se tělo požadavku (typicky GET nebo DELETE bez těla)
-		if ($schema === FALSE) return;
+    /**
+     * Kontroluje SSL
+     */
+    protected function checkSsl()
+    {
+        if (!$this->request->hasFlag(Request::SECURED)) {
+            $this->sendErrorResponse(ApiResponse::S403_FORBIDDEN, static::MESSAGE_SSL_IS_REQUIRED);
+        }
+    }
 
-		// ... automaticky použije schéma podle presenteru a akce
-		if (!$schema) {
-			$schema = $this->formatSchemaFiles($presenter, $action);
-		}
+    /**
+     * Kontroluje verzi API
+     */
+    protected function checkApiVersion()
+    {
+        if (isset($this->minApiVersion) && $this->getHeader('X-Api-Version') < $this->minApiVersion) {
+            $this->sendErrorResponse(ApiResponse::S426_UPGRADE_REQUIRED, sprintf(static::MESSAGE_MINIMAL_SUPPORTED_API_VERSION, $this->minApiVersion));
+        }
+        if (isset($this->maxApiVersion) && $this->getHeader('X-Api-Version') > $this->maxApiVersion) {
+            $this->sendErrorResponse(ApiResponse::S426_UPGRADE_REQUIRED, sprintf(static::MESSAGE_MAXIMAL_SUPPORTED_API_VERSION, $this->maxApiVersion));
+        }
+    }
 
-		$data = $this->parseData($this->rawPostData);
+    /**
+     * Kontroluje přístup
+     *
+     * @param string
+     */
+    protected function checkAccess($action)
+    {
+        $apiKey = $this->getHeader('X-Api-Key');
+        if (!$this->authenticator) {
+            throw new Nette\InvalidStateException('ApiPresenter: API authenticator is not set, but $checkAccess is on.');
+        }
+        $this->user = $this->authenticator->authenticate($apiKey, $this->data);
+        if ($this->user === NULL) {
+            $this->sendErrorResponse(ApiResponse::S401_UNAUTHORIZED, static::MESSAGE_AUTHORIZATION_FAILED);
+        }
+    }
 
-		// validace podle JSON schématu
-		$this->validateSchema($data, $schema);
+    /**
+     * Volá příslušnou akci presenteru
+     *
+     * @param Request
+     * @param string
+     */
+    protected function despatch(Request $request, $action)
+    {
+        $method = 'action' . $action;
+        if (!method_exists($this, $method)) {
+            $this->sendErrorResponse(ApiResponse::S405_METHOD_NOT_ALLOWED, sprintf(static::MESSAGE_METHOD_IS_NOT_ALLOWED, strtoupper($request->method)));
+        }
+        call_user_func_array(array($this, $method), $request->parameters);
+    }
 
-		$this->data = $data;
-	}
+    /**
+     * Získává data požadavku
+     */
+    protected function getRawPostData()
+    {
+        $this->rawPostData = file_get_contents('php://input');
+    }
+
+    /**
+     * Parsuje a validuje data rekvestu
+     *
+     * @param string
+     */
+    protected function prepareData()
+    {
+        $this->data =  $this->parseData($this->rawPostData);
+    }
 
     /**
      * Parsuje POST data
@@ -274,203 +233,150 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
      */
     protected function parseData($data)
     {
-        try
-        {
-            return Json::decode($data);
-        }
-        catch (JsonException $e)
-        {
+        try {
+            return Json::decode($data, Json::FORCE_ARRAY);
+        } catch (JsonException $e) {
             $this->sendErrorResponse(ApiResponse::S400_BAD_REQUEST, static::MESSAGE_INVALID_JSON_DATA);
             exit; // IDE shut up
         }
     }
 
-	/**
-	 * Validuje tělo požadavku oproti JSON schématu
-	 *
-	 * @param array|\StdClass
-	 * @param string|string[]
-	 */
-	protected function validateSchema($data, $files)
-	{
-		if (is_string($files))
-		{
-			$files = array($files);
-		}
+    /**
+     * Vytváří seznam cest, kde lze hledat soubory JSON schémat
+     */
+    protected function formatSchemaFiles($presenter, $action)
+    {
+        $ref = new ClassType($this);
+        $path = str_replace('presenters', 'schemas', dirname($ref->fileName));
+        return array(
+            $path . '/' . str_replace(':', '/', $presenter) . '/' . $action . '.json'
+        );
+    }
 
-		$validator = new JsonSchemaValidator;
-		$validated = FALSE;
-		foreach ($files as $file)
-		{
-			if (!file_exists($file)) continue;
-			if ($validator->check($data, $file)) return;
-			$validated = TRUE;
-		}
-		if (!$validated)
-		{
-			throw new Nette\FileNotFoundException("JSON validation schema '$files[0]' not found.");
-		}
+    /**
+     * Kontrola povinného parametru
+     *
+     * @param mixed
+     * @param string
+     */
+    protected function checkParamRequired($value, $name)
+    {
+        if (!$value) {
+            $this->sendErrorResponse(ApiResponse::S400_BAD_REQUEST, sprintf(static::MESSAGE_MISSING_PARAMETER, $name));
+        }
+    }
 
-		$errors = $validator->getErrors();
+    /**
+     * Kontrola parametru
+     *
+     * @param mixed
+     * @param string
+     * @param string
+     */
+    protected function checkParamValid($condition, $param, $reason = '')
+    {
+        if (!$condition) {
+            $this->sendErrorResponse(ApiResponse::S400_BAD_REQUEST, sprintf(static::MESSAGE_INVALID_PARAMETER, $param, $reason));
+        }
+    }
 
-		if (strpos($errors[0]['message'], 'is missing and it is required') !== FALSE
-			|| strpos($errors[0]['message'], 'NULL value found, but a') !== FALSE)
-		{
-			$this->checkParamRequired(NULL, $errors[0]['property']);
-		}
-		else
-		{
-			$this->sendErrorResponse(ApiResponse::S400_BAD_REQUEST, sprintf(static::MESSAGE_INVALID_PARAMETER, $errors[0]['property'], $errors[0]['message']));
-		}
-	}
+    /**
+     * Odešle odpověď a ukončí aplikaci
+     *
+     * @param array|NULL
+     * @param int|string|NULL
+     */
+    protected function sendSuccessResponse($data = NULL, $responseCode = ApiResponse::S200_OK)
+    {
+        if ($data !== NULL) {
+            $this->payload = $data;
+        }
 
-	/**
-	 * Vytváří seznam cest, kde lze hledat soubory JSON schémat
-	 */
-	protected function formatSchemaFiles($presenter, $action)
-	{
-		$ref = new ClassType($this);
-		$path = str_replace('presenters', 'schemas', dirname($ref->fileName));
-		return array(
-			$path . '/'. str_replace(':', '/', $presenter) . '/' . $action . '.json'
-		);
-	}
+        $this->filterData($this->payload);
 
-	/**
-	 * Kontrola povinného parametru
-	 *
-	 * @param mixed
-	 * @param string
-	 */
-	protected function checkParamRequired($value, $name)
-	{
-		if (!$value)
-		{
-			$this->sendErrorResponse(ApiResponse::S400_BAD_REQUEST, sprintf(static::MESSAGE_MISSING_PARAMETER, $name));
-		}
-	}
+        $this->sendResponse(new ApiResponse($this->payload, $responseCode));
+    }
 
-	/**
-	 * Kontrola parametru
-	 *
-	 * @param mixed
-	 * @param string
-	 * @param string
-	 */
-	protected function checkParamValid($condition, $param, $reason = '')
-	{
-		if (!$condition)
-		{
-			$this->sendErrorResponse(ApiResponse::S400_BAD_REQUEST, sprintf(static::MESSAGE_INVALID_PARAMETER, $param, $reason));
-		}
-	}
+    /**
+     * Odstraňuje z dat klíče s hodnotou NULL, formátuje DateTime
+     */
+    protected function filterData(&$data)
+    {
+        foreach ($data as $key => &$value) {
+            if ($value instanceof DateTime) {
+                $value = $value->format('Y-m-d\\TH:i:sP');
+            } elseif (is_array($value)) {
+                $this->filterData($value);
+            }
+        }
+    }
 
-	/**
-	 * Odešle odpověď a ukončí aplikaci
-	 *
-	 * @param array|NULL
-	 * @param int|string|NULL
-	 */
-	protected function sendSuccessResponse($data = NULL, $responseCode = ApiResponse::S200_OK)
-	{
-		if ($data !== NULL)
-		{
-			$this->payload = $data;
-		}
+    /**
+     * Odešle zprávu s chybovým kódem a ukončí aplikaci
+     *
+     * @param int $errorCode chybový kod API
+     * @param array|string pole chyb nebo jeden či více parametrů ke zformátování chybové zprávy
+     */
+    protected function sendErrorResponse($errorCode, $message = '')
+    {
+        $this->sendResponse(new ApiResponse(array('message' => $message), $errorCode));
+    }
 
-		$this->filterData($this->payload);
+    /**
+     * Odešle odpověď a ukončí presenter
+     *
+     * @param ApiResponse
+     */
+    protected function sendResponse(ApiResponse $response)
+    {
+        @header_remove('x-powered-by');
+        $this->response = $response;
+        $this->terminate();
+    }
 
-		$this->sendResponse(new ApiResponse($this->payload, $responseCode));
-	}
+    /**
+     * Ukončuje presenter
+     *
+     * @throws Nette\Application\AbortException
+     */
+    protected function terminate()
+    {
+        throw new Nette\Application\AbortException();
+    }
 
-	/**
-	 * Odstraňuje z dat klíče s hodnotou NULL, formátuje DateTime
-	 */
-	protected function filterData(&$data)
-	{
-		foreach ($data as $key => &$value)
-		{
-			if ($value === NULL)
-			{
-				unset($data[$key]);
-			}
-			elseif ($value instanceof DateTime)
-			{
-				$value = $value->format('Y-m-d\\TH:i:sP');
-			}
-			elseif (is_array($value))
-			{
-				$this->filterData($value);
-			}
-		}
-	}
+    /**
+     * Zaloguje požadavek
+     *
+     * @param Request
+     */
+    protected function logRequest(Request $request)
+    {
+        $this->logger->logRequest(
+            $this->httpRequest, $this->httpResponse,
+            $request, $this->response,
+            $this->rawPostData,
+            $this->user);
+    }
 
-	/**
-	 * Odešle zprávu s chybovým kódem a ukončí aplikaci
-	 *
-	 * @param int $errorCode chybový kod API
-	 * @param array|string pole chyb nebo jeden či více parametrů ke zformátování chybové zprávy
-	 */
-	protected function sendErrorResponse($errorCode, $message = '')
-	{
-		$this->sendResponse(new ApiResponse(array('message' => $message), $errorCode));
-	}
+    /**
+     * Helper
+     *
+     * @param string
+     * @return string|NULL
+     */
+    private function getHeader($name)
+    {
+        return $this->httpRequest->getHeader($name);
+    }
 
-	/**
-	 * Odešle odpověď a ukončí presenter
-	 *
-	 * @param ApiResponse
-	 */
-	protected function sendResponse(ApiResponse $response)
-	{
-		@header_remove('x-powered-by');
-		$this->response = $response;
-		$this->terminate();
-	}
+    public function setAuthenticator(IApiAuthenticator $authenticator)
+    {
+        $this->authenticator = $authenticator;
+    }
 
-	/**
-	 * Ukončuje presenter
-	 *
-	 * @throws Nette\Application\AbortException
-	 */
-	protected function terminate()
-	{
-		throw new Nette\Application\AbortException();
-	}
-
-	/**
-	 * Zaloguje požadavek
-	 *
-	 * @param Request
-	 */
-	protected function logRequest(Request $request)
-	{
-		$this->logger->logRequest(
-			$this->httpRequest, $this->httpResponse,
-			$request, $this->response,
-			$this->rawPostData,
-			$this->user);
-	}
-
-	/**
-	 * Helper
-	 *
-	 * @param string
-	 * @return string|NULL
-	 */
-	private function getHeader($name)
-	{
-		return $this->httpRequest->getHeader($name);
-	}
-
-	public function setAuthenticator(IApiAuthenticator $authenticator)
-	{
-		$this->authenticator = $authenticator;
-	}
-
-	public function setLogger(IApiLogger $logger)
-	{
-		$this->logger = $logger;
-	}
+    public function setLogger(IApiLogger $logger)
+    {
+        $this->logger = $logger;
+    }
 
 }
