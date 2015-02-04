@@ -14,7 +14,8 @@
     "nette/nette": "2.2.*"
   },
   "require-dev": {
-    "nette/tester": "@dev"
+    "nette/tester": "@dev",
+    "janmarek/mockista": "~1.1"
   },
   "autoload": {
     "classmap": ["src/"]

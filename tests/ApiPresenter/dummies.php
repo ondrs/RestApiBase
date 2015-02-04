@@ -15,7 +15,6 @@ class DummyPresenter extends ApiPresenter
     {
         $this->minApiVersion = 1;
         $this->maxApiVersion = 2;
-        $this->checkSsl = TRUE;
     }
 
     public function actionGet()
@@ -42,61 +41,16 @@ class DummyPresenter extends ApiPresenter
 }
 
 
-class DummyUserStorage implements IUserStorage
-{
-
-    function setAuthenticated($state)
-    {
-
-    }
-
-    function isAuthenticated()
-    {
-        return TRUE;
-    }
 
 
-    function setIdentity(\Nette\Security\IIdentity $identity = NULL)
-    {
-
-    }
-
-    function getIdentity()
-    {
-        return NULL;
-    }
-
-
-    function setExpiration($time, $flags = 0)
-    {
-
-    }
-
-    function getLogoutReason()
-    {
-        return 1;
-    }
-}
-
-
-class DummySuccessAuthenticator implements IAuthenticator
+class DummyAuthenticator implements IAuthenticator
 {
 
     public function authenticate(array $credentials)
     {
-        return new \Nette\Security\User(new DummyUserStorage);
-	}
-
-}
-
-
-class DummyFailAuthenticator implements IAuthenticator
-{
-
-    public function authenticate(array $credentials)
-    {
-        return NULL;
+        return new \Nette\Security\Identity(1);
     }
 
 }
+
 

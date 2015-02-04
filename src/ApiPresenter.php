@@ -56,10 +56,10 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
 
 
     /** @var bool */
-    protected $checkSsl = FALSE;
+    protected $checkSsl = TRUE;
 
     /** @var bool */
-    protected $checkAccess = FALSE;
+    protected $checkAccess = TRUE;
 
     /** @var int|NULL */
     protected $minApiVersion = NULL;
@@ -87,13 +87,21 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     protected $user;
 
 
-    final public function injectPrimary(Container $context, Http\Context $httpContext, Http\IRequest $httpRequest, Http\Response $httpResponse)
+    final public function injectPrimary(
+        Container $context,
+        User $user,
+        IAuthenticator $authenticator,
+        Http\Context $httpContext,
+        Http\IRequest $httpRequest,
+        Http\Response $httpResponse)
     {
         if ($this->context !== NULL) {
             throw new Nette\InvalidStateException("Method " . __METHOD__ . " is intended for initialization and should not be called more than once.");
         }
 
         $this->context = $context;
+        $this->user = $user;
+        $this->authenticator = $authenticator;
         $this->httpContext = $httpContext;
         $this->httpRequest = $httpRequest;
         $this->httpResponse = $httpResponse;
@@ -122,7 +130,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
             $action = isset($this->request->parameters['action']) ? $this->request->parameters['action'] : 'default';
 
             // kontrola přístupu
-            if ($this->checkAccess || $this->authenticator instanceof IApiAuthenticator) {
+            if ($this->checkAccess) {
                 $this->checkAccess($action);
             }
 
@@ -175,12 +183,11 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
      */
     protected function checkAccess($action)
     {
-        $apiKey = $this->getHeader('X-Api-Key');
-        if (!$this->authenticator) {
-            throw new Nette\InvalidStateException('ApiPresenter: API authenticator is not set, but $checkAccess is on.');
+        if($apiKey = $this->getHeader('X-Api-Key')) {
+            $this->authenticator->authenticate([$apiKey]);
         }
-        $this->user = $this->authenticator->authenticate($apiKey, $this->data);
-        if ($this->user === NULL) {
+
+        if (!$this->user->isLoggedIn()) {
             $this->sendErrorResponse(ApiResponse::S401_UNAUTHORIZED, static::MESSAGE_AUTHORIZATION_FAILED);
         }
     }
@@ -348,16 +355,6 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     private function getHeader($name)
     {
         return $this->httpRequest->getHeader($name);
-    }
-
-    public function setAuthenticator(IAuthenticator $authenticator)
-    {
-        $this->authenticator = $authenticator;
-    }
-
-    public function setLogger(IApiLogger $logger)
-    {
-        $this->logger = $logger;
     }
 
 }
