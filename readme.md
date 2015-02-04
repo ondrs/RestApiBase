@@ -48,8 +48,6 @@ Presenter lifecycle:
 
 4) optional user authentication based on `X-Api-Key` header
  - set `$checkAccess` to `FALSE` to turn autenication off (by default is on)
- - authenticator must be set via `setAuthenticator()`
- - authenticator also logs the user in and creates the `$apiKey` - see `IApiAuthenticator` for more
 
 5) calls `actionXyz()`
  - remember ApiPresenter does not use methods named `renderXyz` as Nette presenters do (it does not render anything)
