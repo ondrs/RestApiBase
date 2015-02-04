@@ -5,11 +5,12 @@ namespace Clevis\RestApi;
 use Nette;
 use Nette\Http;
 use Nette\Application\Request;
-use Nette\Application\Routers\Route;
 use Nette\Reflection\ClassType;
 use Nette\DI\Container;
 
 use DateTime;
+use Nette\Security\IAuthenticator;
+use Nette\Security\User;
 use Nette\Utils\Json;
 use Nette\Utils\JsonException;
 
@@ -41,11 +42,8 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     /** @var Container */
     protected $context;
 
-    /** @var IApiAuthenticator */
+    /** @var IAuthenticator */
     protected $authenticator;
-
-    /** @var IApiLogger */
-    protected $logger;
 
     /** @var Http\Context */
     protected $httpContext;
@@ -85,7 +83,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     /** @var array vracená data */
     protected $payload = array();
 
-    /** @var IApiUser */
+    /** @var User */
     protected $user;
 
 
@@ -142,10 +140,6 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
 
         if (!$this->response) {
             $this->response = new ApiResponse(array(), ApiResponse::S500_INTERNAL_SERVER_ERROR);
-        }
-
-        if (isset($this->logger)) {
-            $this->logRequest($request);
         }
 
         return $this->response;
@@ -344,19 +338,6 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         throw new Nette\Application\AbortException();
     }
 
-    /**
-     * Zaloguje požadavek
-     *
-     * @param Request
-     */
-    protected function logRequest(Request $request)
-    {
-        $this->logger->logRequest(
-            $this->httpRequest, $this->httpResponse,
-            $request, $this->response,
-            $this->rawPostData,
-            $this->user);
-    }
 
     /**
      * Helper
@@ -369,7 +350,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         return $this->httpRequest->getHeader($name);
     }
 
-    public function setAuthenticator(IApiAuthenticator $authenticator)
+    public function setAuthenticator(IAuthenticator $authenticator)
     {
         $this->authenticator = $authenticator;
     }

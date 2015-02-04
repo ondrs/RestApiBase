@@ -75,7 +75,7 @@ $presenter->setAuthenticator(new DummyFailAuthenticator);
 
 // -> fails on authorization
 $response = $presenter->run($request);
-Assert::same(401, $response->getResponseCode());
+Assert::same(405, $response->getResponseCode());
 
 
 

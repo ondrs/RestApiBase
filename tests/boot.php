@@ -3,9 +3,6 @@
 require __DIR__ . '/../vendor/nette/tester/Tester/bootstrap.php';
 require __DIR__ . '/../vendor/autoload.php';
 
-require __DIR__ . '/../src/interfaces/IApiUser.php';
-require __DIR__ . '/../src/interfaces/IApiAuthenticator.php';
-require __DIR__ . '/../src/interfaces/IApiLogger.php';
 require __DIR__ . '/../src/RestRoute.php';
 require __DIR__ . '/../src/ApiResponse.php';
 require __DIR__ . '/../src/ApiPresenter.php';
