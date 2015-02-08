@@ -212,7 +212,11 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         if (!method_exists($this, $method)) {
             $this->sendErrorResponse(ApiResponse::S405_METHOD_NOT_ALLOWED, sprintf(static::MESSAGE_METHOD_IS_NOT_ALLOWED, strtoupper($request->method)));
         }
-        call_user_func_array(array($this, $method), $request->parameters);
+
+        $params = $request->parameters;
+        unset($params['action']);
+
+        call_user_func_array(array($this, $method), $params);
     }
 
     /**
