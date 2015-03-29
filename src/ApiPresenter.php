@@ -13,6 +13,7 @@ use Nette\Security\IAuthenticator;
 use Nette\Security\User;
 use Nette\Utils\Json;
 use Nette\Utils\JsonException;
+use Tracy\Debugger;
 
 
 /**
@@ -77,7 +78,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     /** @var string nedekódovaná POST data */
     protected $rawPostData;
 
-    /** @var \StdClass data požadavku dekódovaná z JSONu */
+    /** @var array data požadavku dekódovaná z JSONu */
     protected $data;
 
     /** @var array vracená data */
@@ -150,7 +151,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         } catch (Nette\Application\AbortException $e) {
             // pass
         } catch (\Exception $e) {
-            Nette\Diagnostics\Debugger::log($e);
+            Debugger::log($e);
             $this->response = NULL;
         }
 
@@ -242,7 +243,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
      * Překryjte pro jiný formát dat (např. XML)
      *
      * @param string
-     * @return array|\StdClass
+     * @return array
      */
     protected function parseData($data)
     {
@@ -254,17 +255,6 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         }
     }
 
-    /**
-     * Vytváří seznam cest, kde lze hledat soubory JSON schémat
-     */
-    protected function formatSchemaFiles($presenter, $action)
-    {
-        $ref = new ClassType($this);
-        $path = str_replace('presenters', 'schemas', dirname($ref->fileName));
-        return array(
-            $path . '/' . str_replace(':', '/', $presenter) . '/' . $action . '.json'
-        );
-    }
 
     /**
      * Kontrola povinného parametru
