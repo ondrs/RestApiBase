@@ -3,6 +3,7 @@
 namespace Clevis\RestApi;
 
 use Nette;
+use Nette\Application\LinkGenerator;
 use Nette\Http;
 use Nette\Application\Request;
 use Nette\Reflection\ClassType;
@@ -87,10 +88,14 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     /** @var User */
     protected $user;
 
+    /** @var  LinkGenerator */
+    protected $linkGenerator;
+
 
     final public function injectPrimary(
         Container $context,
         User $user,
+        LinkGenerator $linkGenerator,
         IAuthenticator $authenticator,
         Http\Context $httpContext,
         Http\IRequest $httpRequest,
@@ -102,6 +107,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
 
         $this->context = $context;
         $this->user = $user;
+        $this->linkGenerator = $linkGenerator;
         $this->authenticator = $authenticator;
         $this->httpContext = $httpContext;
         $this->httpRequest = $httpRequest;
@@ -132,8 +138,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
             $action = isset($this->request->parameters['action']) ? $this->request->parameters['action'] : 'default';
 
             // kontrola dat
-            if ($request->isMethod('post') || $request->isMethod('put') || $request->isMethod('patch'))
-            {
+            if ($request->isMethod('post') || $request->isMethod('put') || $request->isMethod('patch')) {
                 $this->getRawPostData();
                 $this->prepareData($name, $action);
             }
@@ -192,7 +197,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
      */
     protected function checkAccess($action)
     {
-        if($apiKey = $this->getHeader('X-Api-Key')) {
+        if ($apiKey = $this->getHeader('X-Api-Key')) {
             $this->authenticator->authenticate([$apiKey]);
         }
 
@@ -235,7 +240,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
      */
     protected function prepareData()
     {
-        $this->data =  $this->parseData($this->rawPostData);
+        $this->data = $this->parseData($this->rawPostData);
     }
 
     /**
