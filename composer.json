@@ -11,7 +11,7 @@
   ],
   "require": {
     "php": ">= 5.3.7",
-    "nette/nette": "2.2.*"
+    "nette/nette": ">=2.2"
   },
   "require-dev": {
     "nette/tester": "@dev",
