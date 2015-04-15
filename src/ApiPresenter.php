@@ -226,7 +226,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         $rm = new \ReflectionMethod($this, $method);
 
         if (count($args) > $rm->getNumberOfParameters()) {
-            $this->sendErrorResponse(static::MESSAGE_TOO_MANY_PARAMETERS);
+            $this->sendErrorResponse(ApiResponse::S400_BAD_REQUEST, static::MESSAGE_TOO_MANY_PARAMETERS);
             exit;
         }
 
