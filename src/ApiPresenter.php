@@ -3,10 +3,10 @@
 namespace Clevis\RestApi;
 
 use Nette;
+use Nette\Application\IResponse;
 use Nette\Application\LinkGenerator;
 use Nette\Http;
 use Nette\Application\Request;
-use Nette\Reflection\ClassType;
 use Nette\DI\Container;
 
 use DateTime;
@@ -40,6 +40,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     const MESSAGE_INVALID_JSON_DATA = 'Invalid JSON data.';
     const MESSAGE_INVALID_PARAMETER = 'Invalid parameter `%s`: \'%s\'.';
     const MESSAGE_MISSING_PARAMETER = 'Missing parameter `%s`.';
+    const MESSAGE_TOO_MANY_PARAMETERS = 'Too many parameters';
 
     /** @var Container */
     protected $context;
@@ -73,7 +74,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     /** @var Request */
     protected $request;
 
-    /** @var ApiResponse */
+    /** @var IResponse */
     protected $response;
 
     /** @var string nedekódovaná POST data */
@@ -83,7 +84,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     protected $data;
 
     /** @var array vracená data */
-    protected $payload = array();
+    protected $payload = [];
 
     /** @var User */
     protected $user;
@@ -161,7 +162,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         }
 
         if (!$this->response) {
-            $this->response = new ApiResponse(array(), ApiResponse::S500_INTERNAL_SERVER_ERROR);
+            $this->response = new ApiResponse([], ApiResponse::S500_INTERNAL_SERVER_ERROR);
         }
 
         return $this->response;
@@ -206,6 +207,37 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         }
     }
 
+
+    /**
+     * @param $method
+     * @param $args
+     * @return mixed
+     * @throws \Exception
+     */
+    public function argsToParams($method, array $args)
+    {
+        $rm = new \ReflectionMethod($this, $method);
+
+        if (count($args) > $rm->getNumberOfParameters()) {
+            die('AA');
+        }
+
+        $params = [];
+
+        foreach ($rm->getParameters() as $param) {
+            $name = $param->getName();
+
+            if (isset($args[$name])) {
+                $params[$name] = $args[$name];
+            } else if ($param->isDefaultValueAvailable()) {
+                $params[$name] = $param->getDefaultValue();
+            }
+
+        }
+
+        return $params;
+    }
+
     /**
      * Volá příslušnou akci presenteru
      *
@@ -219,10 +251,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
             $this->sendErrorResponse(ApiResponse::S405_METHOD_NOT_ALLOWED, sprintf(static::MESSAGE_METHOD_IS_NOT_ALLOWED, strtoupper($request->method)));
         }
 
-        $params = $request->parameters;
-        unset($params['action']);
-
-        call_user_func_array(array($this, $method), $params);
+        call_user_func_array([$this, $method], $this->argsToParams($method, $request->parameters));
     }
 
     /**
@@ -333,9 +362,9 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     /**
      * Odešle odpověď a ukončí presenter
      *
-     * @param ApiResponse
+     * @param IResponse $response
      */
-    protected function sendResponse(ApiResponse $response)
+    protected function sendResponse(IResponse $response)
     {
         @header_remove('x-powered-by');
         $this->response = $response;
