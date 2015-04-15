@@ -156,7 +156,6 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         } catch (Nette\Application\AbortException $e) {
             // pass
         } catch (\Exception $e) {
-
             Debugger::log($e);
 
             if(Debugger::$productionMode) {
@@ -164,7 +163,6 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
             } else {
                 dump($e);
             }
-
         }
 
         if (!$this->response) {
