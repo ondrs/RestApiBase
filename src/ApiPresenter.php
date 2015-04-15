@@ -40,7 +40,6 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     const MESSAGE_INVALID_JSON_DATA = 'Invalid JSON data.';
     const MESSAGE_INVALID_PARAMETER = 'Invalid parameter `%s`: \'%s\'.';
     const MESSAGE_MISSING_PARAMETER = 'Missing parameter `%s`.';
-    const MESSAGE_TOO_MANY_PARAMETERS = 'Too many parameters';
 
     /** @var Container */
     protected $context;
@@ -224,11 +223,6 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     public function argsToParams($method, array $args)
     {
         $rm = new \ReflectionMethod($this, $method);
-
-        if (count($args) > $rm->getNumberOfParameters()) {
-            $this->sendErrorResponse(ApiResponse::S400_BAD_REQUEST, static::MESSAGE_TOO_MANY_PARAMETERS);
-            exit;
-        }
 
         $params = [];
 
