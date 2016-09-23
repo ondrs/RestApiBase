@@ -31,4 +31,20 @@ class DummyPresenter extends \ondrs\ApiBase\ApiPresenter
 
     }
 
+
+    public function actionSchema()
+    {
+        return [
+            'message' => 'string',
+        ];
+    }
+
+
+    public function actionInvalidSchema()
+    {
+        return [
+            'message' => 'string',
+        ];
+    }
+
 }

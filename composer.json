@@ -15,7 +15,10 @@
     "nette/utils": "^2.3",
     "nette/di": "^2.3",
     "nette/security": "^2.3",
-    "tracy/tracy": "^2.3"
+    "tracy/tracy": "^2.3",
+    "justinrainbow/json-schema": "^3.0",
+    "nette/caching": "^2.3",
+    "nette/neon": "^2.3"
   },
   "require-dev": {
     "nette/tester": "^1.7",

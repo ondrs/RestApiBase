@@ -1,8 +1,5 @@
 <?php
 
-use Nette\Http\Request;
-use Nette\Http\Response;
-use Nette\Http\UrlScript;
 use Tester\Assert;
 
 require_once __DIR__ . '/../../bootstrap.php';
@@ -18,15 +15,8 @@ class ApiPresenterTest extends Tester\TestCase
 
     function setUp()
     {
-        $user = \Mockery::mock(\Nette\Security\User::class);
-        $linkGenerator = \Mockery::mock(\Nette\Application\LinkGenerator::class);
-
-        // initial request data
-        $url = new UrlScript;
-        $httpRequest = new Request($url);
-        $httpResponse = new Response;
-
-        $this->apiPresenter = new DummyPresenter($user, $linkGenerator, $httpRequest, $httpResponse);
+        $this->apiPresenter = new DummyPresenter;
+        $this->apiPresenter->schemaValidatorFactory = new \ondrs\ApiBase\SchemaValidatorFactory(new \Nette\Caching\Storages\DevNullStorage());
     }
 
 
@@ -128,6 +118,27 @@ class ApiPresenterTest extends Tester\TestCase
 
             $response = $this->apiPresenter->run($request);
         }, \Nette\Application\BadRequestException::class, "Missing parameter(s) 'a, d'.", 400);
+    }
+
+
+    function testActionSchema()
+    {
+        $params = ['action' => 'schema'];
+        $request = new \Nette\Application\Request('Dummy', \Nette\Http\IRequest::POST, $params);
+
+        $response = $this->apiPresenter->run($request);
+
+        Assert::same(\Nette\Http\IResponse::S200_OK, $response->getResponseCode());
+    }
+
+
+    function testActionInvalidSchema()
+    {
+        Assert::exception(function () {
+            $params = ['action' => 'invalidSchema'];
+            $request = new \Nette\Application\Request('Dummy', \Nette\Http\IRequest::POST, $params);
+            $response = $this->apiPresenter->run($request);
+        }, \Nette\Application\BadRequestException::class, NULL, 400);
     }
 
 

@@ -4,13 +4,12 @@ namespace ondrs\ApiBase;
 
 use Nette;
 use Nette\Application\BadRequestException;
-use Nette\Application\LinkGenerator;
 use Nette\Http;
 use Nette\Application\Request;
 use DateTime;
-use Nette\Security\User;
 use Nette\Utils\Json;
 use Nette\Utils\JsonException;
+use ReflectionClass;
 
 
 abstract class ApiPresenter implements Nette\Application\IPresenter
@@ -20,17 +19,8 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     const MESSAGE_INVALID_PARAMETER = "Invalid parameter '%s': '%s'.";
     const MESSAGE_MISSING_PARAMETER = "Missing parameter(s) '%s'.";
 
-    /** @var User */
-    protected $user;
-
-    /** @var  LinkGenerator */
-    protected $linkGenerator;
-
-    /** @var Http\Request */
-    protected $httpRequest;
-
-    /** @var Http\Response */
-    protected $httpResponse;
+    /** @var SchemaValidatorFactory @inject */
+    public $schemaValidatorFactory;
 
 
     /** @var Request */
@@ -41,19 +31,6 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
 
     /** @var \stdClass|NULL */
     protected $body;
-
-
-    public function __construct(
-        User $user,
-        LinkGenerator $linkGenerator,
-        Http\IRequest $httpRequest,
-        Http\Response $httpResponse)
-    {
-        $this->user = $user;
-        $this->linkGenerator = $linkGenerator;
-        $this->httpRequest = $httpRequest;
-        $this->httpResponse = $httpResponse;
-    }
 
 
     protected function startup()
@@ -76,6 +53,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         if ($request->isMethod(Http\IRequest::POST) || $request->isMethod(Http\IRequest::PUT) || $request->isMethod(Http\IRequest::PATCH)) {
             $this->rawBody = $this->getRequestBody();
             $this->body = $this->parseRequestBody($this->rawBody);
+            $this->validate('request', $action, $this->body);
         }
 
         $data = $this->dispatch($request, $action);
@@ -84,7 +62,35 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
             $data = [];
         }
 
-        return new ApiResponse(self::filterData($data), Http\IResponse::S200_OK);
+        $data = self::filterData($data);
+
+        $this->validate('response', $action, $data);
+
+        return new ApiResponse($data, Http\IResponse::S200_OK);
+    }
+
+
+    /**
+     * @param string $what
+     * @param string $action
+     * @param \stdClass $data
+     * @throws BadRequestException
+     */
+    public function validate($what, $action, $data)
+    {
+        $dir = dirname((new ReflectionClass(static::class))->getFileName());
+
+        $schemaFile = "$dir/" . lcfirst($action) . ".$what.neon";
+
+        if (!file_exists($schemaFile)) {
+            return;
+        }
+
+        $validator = $this->schemaValidatorFactory->create($schemaFile);
+
+        if ($validator->isValid($data) === FALSE) {
+            $this->error("JSON does not validate against schema.\n" . Json::encode($validator->getErrors(), Json::PRETTY), Http\IResponse::S400_BAD_REQUEST);
+        }
     }
 
 

@@ -1,0 +1,18 @@
+type: object
+properties:
+	someText:
+		type: string
+	someNumber:
+		type: number
+
+	nestedObject:
+		type: object
+		properties:
+			someText:
+				type: string
+			someNumber:
+				type: number
+
+		required: [someNumber]
+
+required: [someText, someNumber, nestedObject]
