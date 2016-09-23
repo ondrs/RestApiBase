@@ -1,5 +1,5 @@
 {
-  "name": "clevis/rest-api-base",
+  "name": "ondrs/api-base",
   "description": "Base components for JSON REST API for Nette applications",
   "homepage": "http://clevis.cz",
   "license": "BSD-3-Clause",
@@ -10,12 +10,16 @@
     }
   ],
   "require": {
-    "php": ">= 5.3.7",
-    "nette/nette": ">=2.3"
+    "php": ">= 5.6",
+    "nette/application": "^2.3",
+    "nette/utils": "^2.3",
+    "nette/di": "^2.3",
+    "nette/security": "^2.3",
+    "tracy/tracy": "^2.3"
   },
   "require-dev": {
-    "nette/tester": "@dev",
-    "janmarek/mockista": "~1.1"
+    "nette/tester": "^1.7",
+    "mockery/mockery": "^0.9.5"
   },
   "autoload": {
     "classmap": ["src/"]
