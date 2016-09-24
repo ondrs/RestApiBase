@@ -16,8 +16,10 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
 {
     const MESSAGE_METHOD_IS_NOT_ALLOWED = 'Method %s is not allowed.';
     const MESSAGE_INVALID_JSON_DATA = 'Invalid JSON data.';
+    const MESSAGE_JSON_SCHEMA_ERROR = "JSON does not validate against schema.\n%s";
     const MESSAGE_INVALID_PARAMETER = "Invalid parameter '%s': '%s'.";
     const MESSAGE_MISSING_PARAMETER = "Missing parameter(s) '%s'.";
+    const MESSAGE_NO_API_DOC = "No API documentation exists for the method '%s'.";
 
     /** @var bool */
     public static $mockAllResponses = FALSE;
@@ -117,7 +119,8 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         $validator = $this->schemaValidatorFactory->create($schemaFile);
 
         if ($validator->isValid($data) === FALSE) {
-            $this->error("JSON does not validate against schema.\n" . Json::encode($validator->getErrors(), Json::PRETTY), Http\IResponse::S400_BAD_REQUEST);
+            $errors = Json::encode($validator->getErrors(), Json::PRETTY);
+            $this->error(sprintf(self::MESSAGE_JSON_SCHEMA_ERROR, $errors), Http\IResponse::S400_BAD_REQUEST);
         }
     }
 
@@ -222,6 +225,15 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
      */
     public function actionApiDoc($method)
     {
+        $fullMethodName = 'action' . $method;
+        $reflection = new Nette\Reflection\ClassType($this);
+
+        if ($reflection->hasMethod($fullMethodName)) {
+            $reflection = $reflection->getMethod($fullMethodName);
+        } else {
+            $this->error(sprintf(self::MESSAGE_METHOD_IS_NOT_ALLOWED, strtoupper($method)), Http\IResponse::S405_METHOD_NOT_ALLOWED);
+        }
+
         $data = [
             'request' => $this->getSchemaFile('request', $method),
             'response' => $this->getSchemaFile('response', $method),
@@ -236,17 +248,15 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
                 : NULL;
         }
 
-        if (!array_filter($data)) {
-            $this->error("No schema definitions exists for the method '$method'");
-        }
-
-        $reflection = (new Nette\Reflection\ClassType($this))->getMethod('action' . $method);
-
         $data['description'] = $reflection->getDescription();
         $data['url'] = $reflection->getAnnotation('url');
 
         $res = $reflection->getAnnotations();
         $data['parameters'] = isset($res['param']) ? $res['param'] : NULL;
+
+        if (!array_filter($data)) {
+            $this->error(sprintf(self::MESSAGE_NO_API_DOC, $method));
+        }
 
         return $data;
     }

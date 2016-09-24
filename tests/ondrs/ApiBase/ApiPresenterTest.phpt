@@ -168,10 +168,10 @@ class ApiPresenterTest extends Tester\TestCase
     function testNotExistingActionApiDoc()
     {
         Assert::exception(function() {
-            $params = ['action' => 'apiDoc', 'method' => 'noooo'];
+            $params = ['action' => 'apiDoc', 'method' => 'empty'];
             $request = new \Nette\Application\Request('Dummy', \Nette\Http\IRequest::POST, $params);
             $response = $this->apiPresenter->run($request);
-        }, \Nette\Application\BadRequestException::class, "No schema definitions exists for the method 'noooo'", 404);
+        }, \Nette\Application\BadRequestException::class, "No API documentation exists for the method 'empty'.", 404);
     }
 
 
