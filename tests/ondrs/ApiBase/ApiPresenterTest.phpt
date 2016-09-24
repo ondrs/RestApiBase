@@ -18,11 +18,12 @@ class ApiPresenterTest extends Tester\TestCase
         $this->apiPresenter = new DummyPresenter;
 
         $schemaProvider = new \ondrs\ApiBase\SchemaProvider(new \Nette\Caching\Storages\DevNullStorage());
-        $this->apiPresenter->schemaProvider = $schemaProvider;
-        $this->apiPresenter->schemaValidatorFactory = new \ondrs\ApiBase\SchemaValidatorFactory($schemaProvider);
-
         $fakeResponse = new \ondrs\ApiBase\FakeResponse($schemaProvider);
+        $apiDocBuilder = new \ondrs\ApiBase\ApiDocBuilder($schemaProvider, $fakeResponse);
+
+        $this->apiPresenter->schemaValidatorFactory = new \ondrs\ApiBase\SchemaValidatorFactory($schemaProvider);
         $this->apiPresenter->fakeResponse = $fakeResponse;
+        $this->apiPresenter->apiDocBuilder = $apiDocBuilder;
     }
 
 

@@ -7,6 +7,7 @@ use Nette\Caching\IStorage;
 use Nette\Neon\Neon;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
+use ReflectionClass;
 
 class SchemaProvider
 {
@@ -39,6 +40,23 @@ class SchemaProvider
         }
 
         return $this->memory[$schemaFile];
+    }
+
+
+    /**
+     * @param ApiPresenter $apiPresenter
+     * @param string $what
+     * @param string $action
+     * @return string
+     */
+    public static function getSchemaFile(ApiPresenter $apiPresenter, $what, $action)
+    {
+        $rf = new ReflectionClass(get_class($apiPresenter));
+        $dir = dirname($rf->getFileName());
+
+        $path = realpath("$dir/" . lcfirst($action) . ".$what.neon");
+
+        return str_replace('\\', '/', $path);
     }
 
 

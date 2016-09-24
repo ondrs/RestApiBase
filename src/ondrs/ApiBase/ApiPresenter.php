@@ -28,11 +28,11 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     /** @var SchemaValidatorFactory @inject */
     public $schemaValidatorFactory;
 
-    /** @var  SchemaProvider @inject */
-    public $schemaProvider;
-
     /** @var FakeResponse @inject */
     public $fakeResponse;
+
+    /** @var ApiDocBuilder */
+    public $apiDocBuilder;
 
 
     /** @var Request */
@@ -71,7 +71,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         }
 
         if ($this->mockResponses) {
-            $data = $this->fakeResponse->generate($this->getSchemaFile('response', $action));
+            $data = $this->fakeResponse->generate(SchemaProvider::getSchemaFile($this, 'response', $action));
 
         } else {
             $data = $this->dispatch($request, $action);
@@ -92,25 +92,12 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     /**
      * @param string $what
      * @param string $action
-     * @return string
-     */
-    public function getSchemaFile($what, $action)
-    {
-        $dir = dirname((new ReflectionClass(static::class))->getFileName());
-
-        return "$dir/" . lcfirst($action) . ".$what.neon";
-    }
-
-
-    /**
-     * @param string $what
-     * @param string $action
      * @param \stdClass $data
      * @throws BadRequestException
      */
     public function validate($what, $action, $data)
     {
-        $schemaFile = $this->getSchemaFile($what, $action);
+        $schemaFile = SchemaProvider::getSchemaFile($this, $what, $action);
 
         if (!file_exists($schemaFile)) {
             return;
@@ -228,37 +215,17 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         $fullMethodName = 'action' . $method;
         $reflection = new Nette\Reflection\ClassType($this);
 
-        if ($reflection->hasMethod($fullMethodName)) {
-            $reflection = $reflection->getMethod($fullMethodName);
-        } else {
+        if (!$reflection->hasMethod($fullMethodName)) {
             $this->error(sprintf(self::ERROR_METHOD_IS_NOT_ALLOWED, strtoupper($method)), Http\IResponse::S405_METHOD_NOT_ALLOWED);
         }
 
-        $data = [
-            'request' => $this->getSchemaFile('request', $method),
-            'response' => $this->getSchemaFile('response', $method),
-        ];
+        $doc = $this->apiDocBuilder->buildMethodDoc($this, $fullMethodName);
 
-        foreach ($data as $key => $schemaFile) {
-            $data[$key] = file_exists($schemaFile)
-                ? [
-                    'schema' => $this->schemaProvider->get($schemaFile),
-                    'example' => $this->fakeResponse->generate($schemaFile),
-                ]
-                : NULL;
-        }
-
-        $data['url'] = $reflection->getAnnotation('url');
-
-        $res = $reflection->getAnnotations();
-        $data['parameters'] = isset($res['param']) ? $res['param'] : NULL;
-        $data['description'] = isset($res['description']) ? join(PHP_EOL, $res['description']) : NULL;
-
-        if (!array_filter($data)) {
+        if (!array_filter($doc)) {
             $this->error(sprintf(self::ERROR_NO_API_DOC, $method));
         }
 
-        return $data;
+        return $doc;
     }
 
 
