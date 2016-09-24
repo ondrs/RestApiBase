@@ -19,7 +19,6 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     const ERROR_MISSING_PARAMETER = "Missing parameter(s) '%s'.";
 
     /** @var bool */
-    public static $mockAllResponses = FALSE;
     protected $mockResponses = FALSE;
 
     /** @var SchemaValidatorFactory @inject */
@@ -41,9 +40,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
 
     protected function startup()
     {
-        if (self::$mockAllResponses) {
-            $this->mockResponses = TRUE;
-        }
+        // pass
     }
 
 
