@@ -19,11 +19,9 @@ class ApiPresenterTest extends Tester\TestCase
 
         $schemaProvider = new \ondrs\ApiBase\SchemaProvider(new \Nette\Caching\Storages\DevNullStorage());
         $fakeResponse = new \ondrs\ApiBase\FakeResponse($schemaProvider);
-        $apiDocBuilder = new \ondrs\ApiBase\ApiDocBuilder($schemaProvider, $fakeResponse);
 
         $this->apiPresenter->schemaValidatorFactory = new \ondrs\ApiBase\SchemaValidatorFactory($schemaProvider);
         $this->apiPresenter->fakeResponse = $fakeResponse;
-        $this->apiPresenter->apiDocBuilder = $apiDocBuilder;
     }
 
 
@@ -147,34 +145,6 @@ class ApiPresenterTest extends Tester\TestCase
             $response = $this->apiPresenter->run($request);
         }, \Nette\Application\BadRequestException::class, NULL, 400);
     }
-
-
-    function testActionSchemaDoc()
-    {
-        $params = ['action' => 'apiDoc', 'method' => 'validSchema'];
-        $request = new \Nette\Application\Request('Dummy', \Nette\Http\IRequest::POST, $params);
-        $response = $this->apiPresenter->run($request);
-
-        $p = $response->getPayload();
-        Assert::type('object', $p['request']['schema']);
-        Assert::type('object', $p['request']['example']);
-        Assert::type('object', $p['response']['schema']);
-        Assert::type('object', $p['response']['example']);
-        Assert::type('string', $p['description']);
-        Assert::type('string', $p['url']);
-        Assert::type('array', $p['parameters']);
-    }
-
-
-    function testNotExistingActionApiDoc()
-    {
-        Assert::exception(function() {
-            $params = ['action' => 'apiDoc', 'method' => 'empty'];
-            $request = new \Nette\Application\Request('Dummy', \Nette\Http\IRequest::POST, $params);
-            $response = $this->apiPresenter->run($request);
-        }, \Nette\Application\BadRequestException::class, "No API documentation exists for the method 'empty'.", 404);
-    }
-
 
 }
 

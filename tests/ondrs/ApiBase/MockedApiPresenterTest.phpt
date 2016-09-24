@@ -18,9 +18,9 @@ class MockedApiPresenterTest extends Tester\TestCase
         $this->apiPresenter = new MockedDummyPresenter();
 
         $schemaProvider = new \ondrs\ApiBase\SchemaProvider(new \Nette\Caching\Storages\DevNullStorage());
-        $this->apiPresenter->schemaValidatorFactory = new \ondrs\ApiBase\SchemaValidatorFactory($schemaProvider);
-
         $fakeResponse = new \ondrs\ApiBase\FakeResponse($schemaProvider);
+
+        $this->apiPresenter->schemaValidatorFactory = new \ondrs\ApiBase\SchemaValidatorFactory($schemaProvider);
         $this->apiPresenter->fakeResponse = $fakeResponse;
     }
 
@@ -45,7 +45,6 @@ class MockedApiPresenterTest extends Tester\TestCase
         Assert::type('array', $p->params->address->geo);
         Assert::count(2, $p->params->address->geo);
     }
-
 
 }
 

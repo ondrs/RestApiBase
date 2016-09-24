@@ -9,7 +9,6 @@ use Nette\Application\Request;
 use DateTime;
 use Nette\Utils\Json;
 use Nette\Utils\JsonException;
-use ReflectionClass;
 
 
 abstract class ApiPresenter implements Nette\Application\IPresenter
@@ -17,9 +16,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     const ERROR_METHOD_IS_NOT_ALLOWED = 'Method %s is not allowed.';
     const ERROR_INVALID_JSON_DATA = 'Invalid JSON data.';
     const ERROR_JSON_SCHEMA = "JSON does not validate against schema.\n%s";
-    const ERROR_INVALID_PARAMETER = "Invalid parameter '%s': '%s'.";
     const ERROR_MISSING_PARAMETER = "Missing parameter(s) '%s'.";
-    const ERROR_NO_API_DOC = "No API documentation exists for the method '%s'.";
 
     /** @var bool */
     public static $mockAllResponses = FALSE;
@@ -30,9 +27,6 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
 
     /** @var FakeResponse @inject */
     public $fakeResponse;
-
-    /** @var ApiDocBuilder */
-    public $apiDocBuilder;
 
 
     /** @var Request */
@@ -203,29 +197,6 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         }
 
         return $data;
-    }
-
-
-    /**
-     * @param string $method
-     * @return array
-     */
-    public function actionApiDoc($method)
-    {
-        $fullMethodName = 'action' . $method;
-        $reflection = new Nette\Reflection\ClassType($this);
-
-        if (!$reflection->hasMethod($fullMethodName)) {
-            $this->error(sprintf(self::ERROR_METHOD_IS_NOT_ALLOWED, strtoupper($method)), Http\IResponse::S405_METHOD_NOT_ALLOWED);
-        }
-
-        $doc = $this->apiDocBuilder->buildMethodDoc($this, $fullMethodName);
-
-        if (!array_filter($doc)) {
-            $this->error(sprintf(self::ERROR_NO_API_DOC, $method));
-        }
-
-        return $doc;
     }
 
 
