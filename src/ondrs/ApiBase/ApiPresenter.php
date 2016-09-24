@@ -19,8 +19,18 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     const MESSAGE_INVALID_PARAMETER = "Invalid parameter '%s': '%s'.";
     const MESSAGE_MISSING_PARAMETER = "Missing parameter(s) '%s'.";
 
+    /** @var bool */
+    public static $mockAllResponses = FALSE;
+    protected $mockResponses = FALSE;
+
     /** @var SchemaValidatorFactory @inject */
     public $schemaValidatorFactory;
+
+    /** @var  SchemaProvider @inject */
+    public $schemaProvider;
+
+    /** @var FakeResponse @inject */
+    public $fakeResponse;
 
 
     /** @var Request */
@@ -35,7 +45,9 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
 
     protected function startup()
     {
-        // pass
+        if (self::$mockAllResponses) {
+            $this->mockResponses = TRUE;
+        }
     }
 
 
@@ -56,17 +68,35 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
             $this->validate('request', $action, $this->body);
         }
 
-        $data = $this->dispatch($request, $action);
+        if ($this->mockResponses) {
+            $data = $this->fakeResponse->generate($this->getSchemaFile('response', $action));
 
-        if (!$data) {
-            $data = [];
+        } else {
+            $data = $this->dispatch($request, $action);
+
+            if (!$data) {
+                $data = [];
+            }
+
+            $data = self::filterData($data);
         }
-
-        $data = self::filterData($data);
 
         $this->validate('response', $action, $data);
 
         return new ApiResponse($data, Http\IResponse::S200_OK);
+    }
+
+
+    /**
+     * @param string $what
+     * @param string $action
+     * @return string
+     */
+    public function getSchemaFile($what, $action)
+    {
+        $dir = dirname((new ReflectionClass(static::class))->getFileName());
+
+        return "$dir/" . lcfirst($action) . ".$what.neon";
     }
 
 
@@ -78,9 +108,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
      */
     public function validate($what, $action, $data)
     {
-        $dir = dirname((new ReflectionClass(static::class))->getFileName());
-
-        $schemaFile = "$dir/" . lcfirst($action) . ".$what.neon";
+        $schemaFile = $this->getSchemaFile($what, $action);
 
         if (!file_exists($schemaFile)) {
             return;
@@ -183,6 +211,42 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
                 $data[$key] = self::filterData($value);
             }
         }
+
+        return $data;
+    }
+
+
+    /**
+     * @param string $method
+     * @return array
+     */
+    public function actionApiDoc($method)
+    {
+        $data = [
+            'request' => $this->getSchemaFile('request', $method),
+            'response' => $this->getSchemaFile('response', $method),
+        ];
+
+        foreach ($data as $key => $schemaFile) {
+            $data[$key] = file_exists($schemaFile)
+                ? [
+                    'schema' => $this->schemaProvider->get($schemaFile),
+                    'example' => $this->fakeResponse->generate($schemaFile),
+                ]
+                : NULL;
+        }
+
+        if (!array_filter($data)) {
+            $this->error("No schema definitions exists for the method '$method'");
+        }
+
+        $reflection = (new Nette\Reflection\ClassType($this))->getMethod('action' . $method);
+
+        $data['description'] = $reflection->getDescription();
+        $data['url'] = $reflection->getAnnotation('url');
+
+        $res = $reflection->getAnnotations();
+        $data['parameters'] = isset($res['param']) ? $res['param'] : NULL;
 
         return $data;
     }

@@ -1,4 +1,5 @@
 type: object
+required: [a, b, c]
 properties:
 	a:
 		type: string
@@ -6,11 +7,9 @@ properties:
 		type: number
 	c:
 		type: object
+		required: [ca, cb]
 		properties:
 			ca:
 				type: number
 			cb:
 				type: string
-		required: [ca, cb]
-
-required: [a, b, c]

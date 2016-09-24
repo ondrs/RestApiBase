@@ -14,9 +14,9 @@ class SchemaValidatorTest extends Tester\TestCase
 
     function setUp()
     {
-        $cache = new \Nette\Caching\Cache(new \Nette\Caching\Storages\DevNullStorage());
+        $schemaProvider = new \ondrs\ApiBase\SchemaProvider(new \Nette\Caching\Storages\DevNullStorage());
 
-        $this->schemaValidator = new \ondrs\ApiBase\SchemaValidator(__DIR__ . '/dummies/testing.schema.neon', $cache);
+        $this->schemaValidator = new \ondrs\ApiBase\SchemaValidator(__DIR__ . '/dummies/testing.schema.neon', $schemaProvider);
     }
 
 

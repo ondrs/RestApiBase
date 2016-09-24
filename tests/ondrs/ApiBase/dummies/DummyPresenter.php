@@ -32,7 +32,18 @@ class DummyPresenter extends \ondrs\ApiBase\ApiPresenter
     }
 
 
-    public function actionSchema()
+    /**
+     * Private description
+     *
+     * @description Description for API Doc
+     * @url /super/url/to/valid/schema
+     *
+     * @param int $number
+     * @param string $string
+     * @param NULL|string $null
+     * @return array
+     */
+    public function actionValidSchema($number = 1, $string = 'aa', $null = NULL)
     {
         return [
             'message' => 'string',

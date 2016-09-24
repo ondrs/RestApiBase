@@ -18,7 +18,9 @@
     "tracy/tracy": "^2.3",
     "justinrainbow/json-schema": "^3.0",
     "nette/caching": "^2.3",
-    "nette/neon": "^2.3"
+    "nette/neon": "^2.3",
+    "leko/json-schema-faker": "^0.9.0",
+    "nette/reflection": "^2.4"
   },
   "require-dev": {
     "nette/tester": "^1.7",

@@ -16,7 +16,13 @@ class ApiPresenterTest extends Tester\TestCase
     function setUp()
     {
         $this->apiPresenter = new DummyPresenter;
-        $this->apiPresenter->schemaValidatorFactory = new \ondrs\ApiBase\SchemaValidatorFactory(new \Nette\Caching\Storages\DevNullStorage());
+
+        $schemaProvider = new \ondrs\ApiBase\SchemaProvider(new \Nette\Caching\Storages\DevNullStorage());
+        $this->apiPresenter->schemaProvider = $schemaProvider;
+        $this->apiPresenter->schemaValidatorFactory = new \ondrs\ApiBase\SchemaValidatorFactory($schemaProvider);
+
+        $fakeResponse = new \ondrs\ApiBase\FakeResponse($schemaProvider);
+        $this->apiPresenter->fakeResponse = $fakeResponse;
     }
 
 
@@ -121,9 +127,9 @@ class ApiPresenterTest extends Tester\TestCase
     }
 
 
-    function testActionSchema()
+    function testActionValidSchema()
     {
-        $params = ['action' => 'schema'];
+        $params = ['action' => 'validSchema'];
         $request = new \Nette\Application\Request('Dummy', \Nette\Http\IRequest::POST, $params);
 
         $response = $this->apiPresenter->run($request);
@@ -139,6 +145,33 @@ class ApiPresenterTest extends Tester\TestCase
             $request = new \Nette\Application\Request('Dummy', \Nette\Http\IRequest::POST, $params);
             $response = $this->apiPresenter->run($request);
         }, \Nette\Application\BadRequestException::class, NULL, 400);
+    }
+
+
+    function testActionSchemaDoc()
+    {
+        $params = ['action' => 'apiDoc', 'method' => 'validSchema'];
+        $request = new \Nette\Application\Request('Dummy', \Nette\Http\IRequest::POST, $params);
+        $response = $this->apiPresenter->run($request);
+
+        $p = $response->getPayload();
+        Assert::type('object', $p['request']['schema']);
+        Assert::type('object', $p['request']['example']);
+        Assert::type('object', $p['response']['schema']);
+        Assert::type('object', $p['response']['example']);
+        Assert::type('string', $p['description']);
+        Assert::type('string', $p['url']);
+        Assert::type('array', $p['parameters']);
+    }
+
+
+    function testNotExistingActionApiDoc()
+    {
+        Assert::exception(function() {
+            $params = ['action' => 'apiDoc', 'method' => 'noooo'];
+            $request = new \Nette\Application\Request('Dummy', \Nette\Http\IRequest::POST, $params);
+            $response = $this->apiPresenter->run($request);
+        }, \Nette\Application\BadRequestException::class, "No schema definitions exists for the method 'noooo'", 404);
     }
 
 

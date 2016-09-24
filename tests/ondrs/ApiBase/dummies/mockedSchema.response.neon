@@ -1,0 +1,31 @@
+type: object
+required: [message, code, params]
+properties:
+	message:
+		type: string
+	code:
+		type: integer
+	params:
+		type: object
+		required: [name, age, address]
+		properties:
+			name:
+				type: string
+			age:
+				type: integer
+			address:
+				type: object
+				required: [geo, city, street, postal]
+				properties:
+					geo:
+						type: array
+						items:
+							type: number
+						minItems: 2
+						maxItems: 2
+					city:
+						type: string
+					street:
+						type: string
+					postal:
+						type: number

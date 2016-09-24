@@ -3,9 +3,6 @@
 namespace ondrs\ApiBase;
 
 use JsonSchema\Validator;
-use Nette\Caching\Cache;
-use Nette\Neon\Neon;
-use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
 
 class SchemaValidator
@@ -18,15 +15,10 @@ class SchemaValidator
     private $schema;
 
 
-    public function __construct($schemaFile, Cache $cache)
+    public function __construct($schemaFile, SchemaProvider $schemaProvider)
     {
         $this->validator = new Validator;
-
-        $this->schema = $cache->load($schemaFile, function (& $dependencies) use ($schemaFile) {
-            $dependencies[Cache::FILES] = $schemaFile;
-
-            return self::getSchema($schemaFile);
-        });
+        $this->schema = $schemaProvider->get($schemaFile);
     }
 
 
@@ -41,18 +33,6 @@ class SchemaValidator
         return $this->validator->isValid();
     }
 
-
-    /**
-     * @param string $schemaFile
-     * @return \stdClass
-     */
-    public static function getSchema($schemaFile)
-    {
-        $schema = FileSystem::read($schemaFile);
-        $schema = Neon::decode($schema);
-
-        return Json::decode(Json::encode($schema));
-    }
 
     /**
      * @return array
