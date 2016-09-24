@@ -14,12 +14,12 @@ use ReflectionClass;
 
 abstract class ApiPresenter implements Nette\Application\IPresenter
 {
-    const MESSAGE_METHOD_IS_NOT_ALLOWED = 'Method %s is not allowed.';
-    const MESSAGE_INVALID_JSON_DATA = 'Invalid JSON data.';
-    const MESSAGE_JSON_SCHEMA_ERROR = "JSON does not validate against schema.\n%s";
-    const MESSAGE_INVALID_PARAMETER = "Invalid parameter '%s': '%s'.";
-    const MESSAGE_MISSING_PARAMETER = "Missing parameter(s) '%s'.";
-    const MESSAGE_NO_API_DOC = "No API documentation exists for the method '%s'.";
+    const ERROR_METHOD_IS_NOT_ALLOWED = 'Method %s is not allowed.';
+    const ERROR_INVALID_JSON_DATA = 'Invalid JSON data.';
+    const ERROR_JSON_SCHEMA = "JSON does not validate against schema.\n%s";
+    const ERROR_INVALID_PARAMETER = "Invalid parameter '%s': '%s'.";
+    const ERROR_MISSING_PARAMETER = "Missing parameter(s) '%s'.";
+    const ERROR_NO_API_DOC = "No API documentation exists for the method '%s'.";
 
     /** @var bool */
     public static $mockAllResponses = FALSE;
@@ -120,7 +120,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
 
         if ($validator->isValid($data) === FALSE) {
             $errors = Json::encode($validator->getErrors(), Json::PRETTY);
-            $this->error(sprintf(self::MESSAGE_JSON_SCHEMA_ERROR, $errors), Http\IResponse::S400_BAD_REQUEST);
+            $this->error(sprintf(self::ERROR_JSON_SCHEMA, $errors), Http\IResponse::S400_BAD_REQUEST);
         }
     }
 
@@ -152,7 +152,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         }
 
         if ($missingParams) {
-            $this->error(sprintf(self::MESSAGE_MISSING_PARAMETER, join(', ', $missingParams)), Http\IResponse::S400_BAD_REQUEST);
+            $this->error(sprintf(self::ERROR_MISSING_PARAMETER, join(', ', $missingParams)), Http\IResponse::S400_BAD_REQUEST);
         }
 
         return $params;
@@ -169,7 +169,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         $method = 'action' . $action;
 
         if (!method_exists($this, $method)) {
-            $this->error(sprintf(self::MESSAGE_METHOD_IS_NOT_ALLOWED, strtoupper($request->method)), Http\IResponse::S405_METHOD_NOT_ALLOWED);
+            $this->error(sprintf(self::ERROR_METHOD_IS_NOT_ALLOWED, strtoupper($request->method)), Http\IResponse::S405_METHOD_NOT_ALLOWED);
         }
 
         return call_user_func_array([$this, $method], $this->argsToParams($method, $request->parameters));
@@ -194,7 +194,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         try {
             return Json::decode($data);
         } catch (JsonException $e) {
-            $this->error(self::MESSAGE_INVALID_JSON_DATA, Http\IResponse::S400_BAD_REQUEST);
+            $this->error(self::ERROR_INVALID_JSON_DATA, Http\IResponse::S400_BAD_REQUEST);
             exit; // IDE shut up
         }
     }
@@ -231,7 +231,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         if ($reflection->hasMethod($fullMethodName)) {
             $reflection = $reflection->getMethod($fullMethodName);
         } else {
-            $this->error(sprintf(self::MESSAGE_METHOD_IS_NOT_ALLOWED, strtoupper($method)), Http\IResponse::S405_METHOD_NOT_ALLOWED);
+            $this->error(sprintf(self::ERROR_METHOD_IS_NOT_ALLOWED, strtoupper($method)), Http\IResponse::S405_METHOD_NOT_ALLOWED);
         }
 
         $data = [
@@ -255,7 +255,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         $data['parameters'] = isset($res['param']) ? $res['param'] : NULL;
 
         if (!array_filter($data)) {
-            $this->error(sprintf(self::MESSAGE_NO_API_DOC, $method));
+            $this->error(sprintf(self::ERROR_NO_API_DOC, $method));
         }
 
         return $data;
