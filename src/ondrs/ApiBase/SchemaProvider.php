@@ -11,6 +11,8 @@ use ReflectionClass;
 
 class SchemaProvider
 {
+    const REQUEST = 'request';
+    const RESPONSE = 'response';
 
     /** @var Cache */
     private $cache;

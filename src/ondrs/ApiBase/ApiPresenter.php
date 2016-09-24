@@ -58,11 +58,11 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         if ($request->isMethod(Http\IRequest::POST) || $request->isMethod(Http\IRequest::PUT) || $request->isMethod(Http\IRequest::PATCH)) {
             $this->rawBody = $this->getRequestBody();
             $this->body = $this->parseRequestBody($this->rawBody);
-            $this->validate('request', $action, $this->body);
+            $this->validate(SchemaProvider::REQUEST, $action, $this->body);
         }
 
         if ($this->mockResponses) {
-            $data = $this->fakeResponse->generate(SchemaProvider::getSchemaFile($this, 'response', $action));
+            $data = $this->fakeResponse->generate(SchemaProvider::getSchemaFile($this, SchemaProvider::RESPONSE, $action));
 
         } else {
             $data = $this->dispatch($request, $action);
@@ -74,7 +74,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
             $data = self::filterData($data);
         }
 
-        $this->validate('response', $action, $data);
+        $this->validate(SchemaProvider::RESPONSE, $action, $data);
 
         return new ApiResponse($data, Http\IResponse::S200_OK);
     }

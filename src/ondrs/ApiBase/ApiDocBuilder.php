@@ -62,8 +62,8 @@ class ApiDocBuilder
         $actionName = ltrim($method, 'action');
 
         $schema = [
-            'request' => SchemaProvider::getSchemaFile($apiPresenter, 'request', $actionName),
-            'response' => SchemaProvider::getSchemaFile($apiPresenter, 'response', $actionName),
+            SchemaProvider::REQUEST => SchemaProvider::getSchemaFile($apiPresenter, SchemaProvider::REQUEST, $actionName),
+            SchemaProvider::RESPONSE => SchemaProvider::getSchemaFile($apiPresenter, SchemaProvider::RESPONSE, $actionName),
         ];
 
         foreach ($schema as $key => $schemaFile) {
@@ -81,9 +81,7 @@ class ApiDocBuilder
             'url' => $reflection->getAnnotation('url'),
             'parameters' => isset($res['param']) ? $res['param'] : NULL,
             'description' => isset($res['description']) ? join(PHP_EOL, $res['description']) : NULL,
-            'request' => $schema['request'],
-            'response' => $schema['response'],
-        ];
+        ] + $schema;
     }
 
 }
