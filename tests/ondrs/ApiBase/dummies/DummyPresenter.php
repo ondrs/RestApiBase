@@ -33,9 +33,11 @@ class DummyPresenter extends \ondrs\ApiBase\ApiPresenter
 
 
     /**
-     * Private description
+     * Super duper
+     * description
      *
-     * @description Description for API Doc
+     * @description Multi line description for API Doc
+     * @description Second line
      * @url /super/url/to/valid/schema
      *
      * @param int $number

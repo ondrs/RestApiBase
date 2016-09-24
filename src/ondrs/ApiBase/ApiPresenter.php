@@ -248,11 +248,11 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
                 : NULL;
         }
 
-        $data['description'] = $reflection->getDescription();
         $data['url'] = $reflection->getAnnotation('url');
 
         $res = $reflection->getAnnotations();
         $data['parameters'] = isset($res['param']) ? $res['param'] : NULL;
+        $data['description'] = isset($res['description']) ? join(PHP_EOL, $res['description']) : NULL;
 
         if (!array_filter($data)) {
             $this->error(sprintf(self::ERROR_NO_API_DOC, $method));
