@@ -59,7 +59,7 @@ class ApiPresenterTest extends Tester\TestCase
             'e' => '2016-01-01T12:00:00+01:00',
         ];
 
-        Assert::same($expected, \ondrs\ApiBase\ApiPresenter::filterData($data));
+        Assert::same($expected, $this->apiPresenter->toResponseData($data));
     }
 
 

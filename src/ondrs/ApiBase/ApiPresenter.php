@@ -71,7 +71,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
                 $data = [];
             }
 
-            $data = self::filterData($data);
+            $data = $this->toResponseData($data);
         }
 
         $this->validate(SchemaProvider::RESPONSE, $action, $data);
@@ -182,14 +182,14 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
      * @param array $data
      * @return array
      */
-    public static function filterData($data)
+    public function toResponseData($data)
     {
         foreach ($data as $key => $value) {
             if ($value instanceof DateTime) {
                 $data[$key] = $value->format(DATE_RFC3339);
 
             } elseif (is_array($value)) {
-                $data[$key] = self::filterData($value);
+                $data[$key] = self::toResponseData($value);
             }
         }
 
