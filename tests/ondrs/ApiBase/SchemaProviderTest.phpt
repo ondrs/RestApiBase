@@ -1,7 +1,7 @@
 <?php
 
 use Nette\Utils\Strings;
-use ondrs\ApiBase\SchemaProvider;
+use ondrs\ApiBase\Services\SchemaProvider;
 use Tester\Assert;
 
 require_once __DIR__ . '/../../bootstrap.php';
@@ -11,7 +11,7 @@ require_once __DIR__ . '/dummies/DummyPresenter.php';
 class SchemaProviderTest extends Tester\TestCase
 {
 
-    /** @var  SchemaProvider */
+    /** @var  \ondrs\ApiBase\Services\SchemaProvider */
     private $schemaProvider;
 
 
@@ -25,7 +25,7 @@ class SchemaProviderTest extends Tester\TestCase
     {
         $schemaFile = SchemaProvider::getSchemaFile(new DummyPresenter(), 'request', 'validSchema');
 
-        Assert::true(Strings::endsWith($schemaFile, 'RestApiBase/tests/ondrs/ApiBase/dummies/validSchema.request.neon'));
+        Assert::true(Strings::endsWith($schemaFile, 'ondrs/ApiBase/dummies/validSchema.request.neon'));
     }
 
 

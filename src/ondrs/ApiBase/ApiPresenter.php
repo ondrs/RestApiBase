@@ -9,6 +9,9 @@ use Nette\Application\Request;
 use DateTime;
 use Nette\Utils\Json;
 use Nette\Utils\JsonException;
+use ondrs\ApiBase\Services\FakeResponse;
+use ondrs\ApiBase\Services\SchemaProvider;
+use ondrs\ApiBase\Services\SchemaValidatorFactory;
 
 
 abstract class ApiPresenter implements Nette\Application\IPresenter

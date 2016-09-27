@@ -1,6 +1,6 @@
 <?php
 
-namespace ondrs\ApiBase;
+namespace ondrs\ApiBase\Services;
 
 use JsonSchema\Validator;
 use Nette\Utils\Json;

@@ -1,12 +1,15 @@
 {
   "name": "ondrs/api-base",
-  "description": "Base components for JSON REST API for Nette applications",
-  "homepage": "http://clevis.cz",
+  "description": "Base components for JSON API for Nette applications",
   "license": "BSD-3-Clause",
   "authors": [
     {
       "name": "Clevis s.r.o.",
       "homepage": "http://clevis.cz"
+    },
+    {
+      "name": "Ondřej Plšek",
+      "homepage": "http://ondraplsek.cz"
     }
   ],
   "require": {
@@ -20,7 +23,8 @@
     "nette/caching": "^2.3",
     "nette/neon": "^2.3",
     "leko/json-schema-faker": "^0.9.0",
-    "nette/reflection": "^2.4"
+    "nette/reflection": "^2.3",
+    "nette/bootstrap": "^2.3"
   },
   "require-dev": {
     "nette/tester": "^1.7",

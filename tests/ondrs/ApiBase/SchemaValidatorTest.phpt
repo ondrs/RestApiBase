@@ -8,15 +8,15 @@ require_once __DIR__ . '/../../bootstrap.php';
 class SchemaValidatorTest extends Tester\TestCase
 {
 
-    /** @var  \ondrs\ApiBase\SchemaValidator */
+    /** @var  \ondrs\ApiBase\Services\SchemaValidator */
     private $schemaValidator;
 
 
     function setUp()
     {
-        $schemaProvider = new \ondrs\ApiBase\SchemaProvider(new \Nette\Caching\Storages\DevNullStorage());
+        $schemaProvider = new \ondrs\ApiBase\Services\SchemaProvider(new \Nette\Caching\Storages\DevNullStorage());
 
-        $this->schemaValidator = new \ondrs\ApiBase\SchemaValidator(__DIR__ . '/dummies/testing.schema.neon', $schemaProvider);
+        $this->schemaValidator = new \ondrs\ApiBase\Services\SchemaValidator(__DIR__ . '/dummies/testing.schema.neon', $schemaProvider);
     }
 
 

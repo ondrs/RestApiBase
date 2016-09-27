@@ -1,9 +1,10 @@
 <?php
 
-namespace ondrs\ApiBase;
+namespace ondrs\ApiBase\Services;
 
 use Nette\Reflection\ClassType;
 use Nette\Utils\Strings;
+use ondrs\ApiBase\ApiPresenter;
 use ReflectionMethod;
 
 class ApiDocBuilder

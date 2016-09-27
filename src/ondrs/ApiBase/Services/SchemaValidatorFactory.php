@@ -1,10 +1,8 @@
 <?php
 
-namespace ondrs\ApiBase;
+namespace ondrs\ApiBase\Services;
 
-use JSONSchemaFaker\Faker;
-
-class FakeResponse
+class SchemaValidatorFactory
 {
 
     /** @var SchemaProvider */
@@ -19,12 +17,10 @@ class FakeResponse
 
     /**
      * @param string $schemaFile
-     * @return \stdClass
+     * @return SchemaValidator
      */
-    public function generate($schemaFile)
+    public function create($schemaFile)
     {
-        $schema = $this->schemaProvider->get($schemaFile);
-
-        return Faker::fake($schema);
+        return new SchemaValidator($schemaFile, $this->schemaProvider);
     }
 }

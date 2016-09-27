@@ -1,12 +1,13 @@
 <?php
 
-namespace ondrs\ApiBase;
+namespace ondrs\ApiBase\Services;
 
 use Nette\Caching\Cache;
 use Nette\Caching\IStorage;
 use Nette\Neon\Neon;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
+use ondrs\ApiBase\ApiPresenter;
 use ReflectionClass;
 
 class SchemaProvider

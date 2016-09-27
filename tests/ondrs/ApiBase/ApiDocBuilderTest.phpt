@@ -1,7 +1,7 @@
 <?php
 
 use Nette\Utils\Strings;
-use ondrs\ApiBase\SchemaProvider;
+use ondrs\ApiBase\Services\SchemaProvider;
 use Tester\Assert;
 
 require_once __DIR__ . '/../../bootstrap.php';
@@ -12,16 +12,16 @@ require_once __DIR__ . '/dummies/MockedDummyPresenter.php';
 class ApiDocBuilderTest extends Tester\TestCase
 {
 
-    /** @var  \ondrs\ApiBase\ApiDocBuilder */
+    /** @var  \ondrs\ApiBase\Services\ApiDocBuilder */
     private $apiDocBuilder;
 
 
     function setUp()
     {
         $schemaProvider = new SchemaProvider(new \Nette\Caching\Storages\DevNullStorage());
-        $fakeResponse = new \ondrs\ApiBase\FakeResponse($schemaProvider);
+        $fakeResponse = new \ondrs\ApiBase\Services\FakeResponse($schemaProvider);
 
-        $this->apiDocBuilder = new \ondrs\ApiBase\ApiDocBuilder($schemaProvider, $fakeResponse);
+        $this->apiDocBuilder = new \ondrs\ApiBase\Services\ApiDocBuilder($schemaProvider, $fakeResponse);
     }
 
 
