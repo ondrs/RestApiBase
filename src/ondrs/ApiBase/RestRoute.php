@@ -48,7 +48,7 @@ class RestRoute extends Route
 
         $method = $httpRequest->getMethod();
 
-        if (!in_array($method, [IRequest::GET, IRequest::POST, IRequest::PUT, IRequest::PATCH, IRequest::DELETE, IRequest::OPTIONS, IRequest::HEAD])) {
+        if (!in_array($method, ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'])) {
             return NULL;
         }
 
