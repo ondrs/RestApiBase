@@ -94,7 +94,7 @@ class ApiPresenterTest extends Tester\TestCase
 
         $response = $this->apiPresenter->run($request);
 
-        $expected = (object)[
+        $expected = [
             'ca' => 2,
             'cb' => 'string',
         ];

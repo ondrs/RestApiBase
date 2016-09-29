@@ -22,7 +22,7 @@ class DummyPresenter extends \ondrs\ApiBase\ApiPresenter
 
     public function actionContent()
     {
-        return $this->body->c;
+        return (array)$this->body->c;
     }
 
 

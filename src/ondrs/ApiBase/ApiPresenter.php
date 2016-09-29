@@ -188,14 +188,14 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
      * @param array $data
      * @return array
      */
-    public function toResponseData($data)
+    public function toResponseData(array $data)
     {
         foreach ($data as $key => $value) {
             if ($value instanceof DateTime) {
                 $data[$key] = $value->format(DATE_RFC3339);
 
             } elseif (is_array($value)) {
-                $data[$key] = self::toResponseData($value);
+                $data[$key] = $this->toResponseData($value);
             }
         }
 
