@@ -70,7 +70,10 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         } else {
             $data = $this->dispatch($request, $action);
 
-            if (!$data) {
+            if ($data instanceof Nette\Application\IResponse) {
+                return $data;
+
+            } else if (!$data) {
                 $data = [];
             }
 
