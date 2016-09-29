@@ -146,7 +146,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     /**
      * @param Request $request
      * @param $action
-     * @return mixed
+     * @return void|array|Nette\Application\IResponse
      */
     protected function dispatch(Request $request, $action)
     {
