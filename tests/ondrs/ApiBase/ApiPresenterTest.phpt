@@ -52,11 +52,11 @@ class ApiPresenterTest extends Tester\TestCase
                 'cb' => 3,
                 'cc' => [
                     'cca' => 1,
-                    'ccb' => '2016-01-01T12:00:00+01:00',
+                    'ccb' => '2016-01-01T12:00:00+0100',
                 ],
-                'cd' => '2016-01-01T12:00:00+01:00',
+                'cd' => '2016-01-01T12:00:00+0100',
             ],
-            'e' => '2016-01-01T12:00:00+01:00',
+            'e' => '2016-01-01T12:00:00+0100',
         ];
 
         Assert::same($expected, $this->apiPresenter->toResponseData($data));

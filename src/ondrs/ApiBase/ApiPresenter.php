@@ -192,7 +192,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     {
         foreach ($data as $key => $value) {
             if ($value instanceof DateTime) {
-                $data[$key] = $value->format(DATE_RFC3339);
+                $data[$key] = $value->format(DateTime::ISO8601);
 
             } elseif (is_array($value)) {
                 $data[$key] = $this->toResponseData($value);
