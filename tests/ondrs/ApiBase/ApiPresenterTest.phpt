@@ -83,7 +83,7 @@ class ApiPresenterTest extends Tester\TestCase
         $response = $this->apiPresenter->run($request);
 
         Assert::same(\Nette\Http\IResponse::S200_OK, $response->getResponseCode());
-        Assert::same([], $response->getPayload());
+        Assert::type(stdClass::class, $response->getPayload());
     }
 
 

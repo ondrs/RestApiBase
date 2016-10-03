@@ -73,8 +73,8 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
             if ($data instanceof Nette\Application\IResponse) {
                 return $data;
 
-            } else if (!$data) {
-                $data = [];
+            } else if ($data === NULL) {
+                return new ApiResponse(new \stdClass(), Http\IResponse::S200_OK);
             }
 
             $data = $this->toResponseData($data);
