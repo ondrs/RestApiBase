@@ -34,9 +34,6 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     /** @var Request */
     protected $request;
 
-    /** @var string */
-    protected $rawBody;
-
     /** @var \stdClass|NULL */
     protected $body;
 
@@ -58,10 +55,13 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
 
         $action = isset($this->request->parameters['action']) ? $this->request->parameters['action'] : 'default';
 
-        if ($request->isMethod(Http\IRequest::POST) || $request->isMethod(Http\IRequest::PUT) || $request->isMethod(Http\IRequest::PATCH)) {
-            $this->rawBody = $this->getRequestBody();
-            $this->body = $this->parseRequestBody($this->rawBody);
-            $this->validate(SchemaProvider::REQUEST, $action, $this->body);
+        if (!$request->isMethod(Http\IRequest::GET)) {
+            $contentType = isset($_SERVER['CONTENT_TYPE']) ? $_SERVER['CONTENT_TYPE'] : NULL;
+
+            if (stripos($contentType, 'json') !== FALSE) {
+                $this->body = $this->parseRequestBody($this->getRequestBody());
+                $this->validate(SchemaProvider::REQUEST, $action, $this->body);
+            }
         }
 
         if ($this->mockResponses) {
@@ -163,7 +163,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     /**
      * @return string
      */
-    public function getRequestBody()
+    protected function getRequestBody()
     {
         return file_get_contents('php://input');
     }

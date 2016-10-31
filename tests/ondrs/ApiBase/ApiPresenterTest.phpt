@@ -22,6 +22,8 @@ class ApiPresenterTest extends Tester\TestCase
 
         $this->apiPresenter->schemaValidatorFactory = new \ondrs\ApiBase\Services\SchemaValidatorFactory($schemaProvider);
         $this->apiPresenter->fakeResponse = $fakeResponse;
+
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
     }
 
 
@@ -144,6 +146,28 @@ class ApiPresenterTest extends Tester\TestCase
             $request = new \Nette\Application\Request('Dummy', \Nette\Http\IRequest::POST, $params);
             $response = $this->apiPresenter->run($request);
         }, \Nette\Application\BadRequestException::class, NULL, 400);
+    }
+
+
+    function testNoJsonContentType()
+    {
+        $_SERVER['CONTENT_TYPE'] = 'multipart/form-data';
+
+        $params = ['action' => 'emptyBody'];
+        $request = new \Nette\Application\Request('Dummy', \Nette\Http\IRequest::POST, $params);
+        $response = $this->apiPresenter->run($request);
+
+        Assert::same(NULL, $response->getPayload()['body']);
+    }
+
+
+    function testJsonContentType()
+    {
+        $params = ['action' => 'emptyBody'];
+        $request = new \Nette\Application\Request('Dummy', \Nette\Http\IRequest::POST, $params);
+        $response = $this->apiPresenter->run($request);
+
+        Assert::type(stdClass::class, $response->getPayload()['body']);
     }
 
 }

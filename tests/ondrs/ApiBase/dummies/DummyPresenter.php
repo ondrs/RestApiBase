@@ -3,7 +3,7 @@
 class DummyPresenter extends \ondrs\ApiBase\ApiPresenter
 {
 
-    public function getRequestBody()
+    protected function getRequestBody()
     {
         return file_get_contents(__DIR__ . '/requestBody.json');
     }
@@ -29,6 +29,14 @@ class DummyPresenter extends \ondrs\ApiBase\ApiPresenter
     public function actionWithArgs($a, $b = NULL, $c = 1, $d)
     {
 
+    }
+
+
+    public function actionEmptyBody()
+    {
+        return [
+            'body' => $this->body,
+        ];
     }
 
 
