@@ -70,7 +70,7 @@ class SchemaProvider
      */
     private static function getSchema($schemaFile)
     {
-        $schema = FileSystem::read($schemaFile);
+        $schema = @file_get_contents($schemaFile);  // TODO: validate content
         $schema = Neon::decode($schema);
 
         return Json::decode(Json::encode($schema));
