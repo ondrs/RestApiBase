@@ -13,14 +13,14 @@ class ApiDocBuilder
     /** @var SchemaProvider */
     private $schemaProvider;
 
-    /** @var FakeResponse */
-    private $fakeResponse;
+    /** @var ExampleResponse  */
+    private $exampleResponse;
 
 
-    public function __construct(SchemaProvider $schemaProvider, FakeResponse $fakeResponse)
+    public function __construct(SchemaProvider $schemaProvider, ExampleResponse $exampleResponse)
     {
         $this->schemaProvider = $schemaProvider;
-        $this->fakeResponse = $fakeResponse;
+        $this->exampleResponse = $exampleResponse;
     }
 
 
@@ -68,10 +68,11 @@ class ApiDocBuilder
         ];
 
         foreach ($schema as $key => $schemaFile) {
+
             $schema[$key] = file_exists($schemaFile)
                 ? [
                     'schema' => $this->schemaProvider->get($schemaFile),
-                    'example' => $this->fakeResponse->generate($schemaFile),
+                    'example' => $this->exampleResponse->generate($apiPresenter, $key, $actionName),
                 ]
                 : NULL;
         }

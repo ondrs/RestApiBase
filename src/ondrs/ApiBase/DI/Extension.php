@@ -6,6 +6,7 @@ use Nette\Configurator;
 use Nette\DI\Compiler;
 use Nette\DI\CompilerExtension;
 use ondrs\ApiBase\Services\ApiDocBuilder;
+use ondrs\ApiBase\Services\ExampleResponse;
 use ondrs\ApiBase\Services\FakeResponse;
 use ondrs\ApiBase\Services\SchemaProvider;
 use ondrs\ApiBase\Services\SchemaValidatorFactory;
@@ -22,6 +23,9 @@ class Extension extends CompilerExtension
 
         $builder->addDefinition($this->prefix('fakeResponse'))
             ->setClass(FakeResponse::class);
+
+        $builder->addDefinition($this->prefix('exampleResponse'))
+            ->setClass(ExampleResponse::class);
 
         $builder->addDefinition($this->prefix('schemaProvider'))
             ->setClass(SchemaProvider::class);

@@ -64,6 +64,27 @@ class SchemaProvider
 
 
     /**
+     * @param ApiPresenter $apiPresenter
+     * @param string $what
+     * @param string $action
+     * @return string|NULL
+     */
+    public static function getSchemaExampleFile(ApiPresenter $apiPresenter, $what, $action)
+    {
+        $rf = new ReflectionClass(get_class($apiPresenter));
+        $dir = dirname($rf->getFileName());
+
+        $path = realpath("$dir/" . lcfirst($action) . ".$what.example.neon");
+
+        if (is_file($path)) {
+            return str_replace('\\', '/', $path);
+        }
+
+        return NULL;
+    }
+
+
+    /**
      * @internal
      * @param string $schemaFile
      * @return \stdClass

@@ -20,8 +20,9 @@ class ApiDocBuilderTest extends Tester\TestCase
     {
         $schemaProvider = new SchemaProvider(new \Nette\Caching\Storages\DevNullStorage());
         $fakeResponse = new \ondrs\ApiBase\Services\FakeResponse($schemaProvider);
+        $exampleResponse = new \ondrs\ApiBase\Services\ExampleResponse($fakeResponse);
 
-        $this->apiDocBuilder = new \ondrs\ApiBase\Services\ApiDocBuilder($schemaProvider, $fakeResponse);
+        $this->apiDocBuilder = new \ondrs\ApiBase\Services\ApiDocBuilder($schemaProvider, $exampleResponse);
     }
 
 
