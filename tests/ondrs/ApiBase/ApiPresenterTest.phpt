@@ -113,7 +113,7 @@ class ApiPresenterTest extends Tester\TestCase
             $request = new \Nette\Application\Request('Dummy', \Nette\Http\IRequest::POST, $params);
 
             $response = $this->apiPresenter->run($request);
-        }, \Nette\Application\BadRequestException::class, 'Method POST is not allowed.', 405);
+        }, \ondrs\ApiBase\ApiBadRequestException::class, 'Method POST is not allowed.', 405);
     }
 
 
@@ -124,7 +124,7 @@ class ApiPresenterTest extends Tester\TestCase
             $request = new \Nette\Application\Request('Dummy', \Nette\Http\IRequest::GET, $params);
 
             $response = $this->apiPresenter->run($request);
-        }, \Nette\Application\BadRequestException::class, "Missing parameter(s) 'a, d'.", 400);
+        }, \ondrs\ApiBase\ApiBadRequestException::class, "Missing parameter(s) 'a, d'.", 400);
     }
 
 
@@ -145,7 +145,7 @@ class ApiPresenterTest extends Tester\TestCase
             $params = ['action' => 'invalidSchema'];
             $request = new \Nette\Application\Request('Dummy', \Nette\Http\IRequest::POST, $params);
             $response = $this->apiPresenter->run($request);
-        }, \Nette\Application\BadRequestException::class, NULL, 400);
+        }, \ondrs\ApiBase\JsonSchemaException::class, NULL, 400);
     }
 
 

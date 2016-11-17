@@ -104,7 +104,11 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
 
         if ($validator->isValid($data) === FALSE) {
             $errors = Json::encode($validator->getErrors(), Json::PRETTY);
-            $this->error(sprintf(self::ERROR_JSON_SCHEMA, $errors), Http\IResponse::S400_BAD_REQUEST);
+
+            $e = new JsonSchemaException(sprintf(self::ERROR_JSON_SCHEMA, $errors), Http\IResponse::S400_BAD_REQUEST);
+            $e->errors = $errors;
+
+            throw $e;
         }
     }
 
@@ -206,11 +210,11 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     /**
      * @param string|NULL $message
      * @param int $code
-     * @throws BadRequestException
+     * @throws ApiBadRequestException
      */
     public function error($message = NULL, $code = Http\IResponse::S404_NOT_FOUND)
     {
-        throw new BadRequestException($message, $code);
+        throw new ApiBadRequestException($message, $code);
     }
 
     /**
