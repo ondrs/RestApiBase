@@ -80,6 +80,7 @@ class ApiDocBuilder
 
         return [
             'url' => $reflection->getAnnotation('url'),
+            'method' => strtoupper($reflection->getAnnotation('method')),
             'parameters' => isset($res['param']) ? $res['param'] : NULL,
             'description' => isset($res['description']) ? join(PHP_EOL, $res['description']) : NULL,
         ] + $schema;
