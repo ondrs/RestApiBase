@@ -5,7 +5,6 @@ namespace ondrs\ApiBase\Services;
 use Nette\Caching\Cache;
 use Nette\Caching\IStorage;
 use Nette\Neon\Neon;
-use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
 use ondrs\ApiBase\ApiPresenter;
 use ReflectionClass;
@@ -38,7 +37,7 @@ class SchemaProvider
             $this->memory[$schemaFile] = $this->cache->load($schemaFile, function (& $dependencies) use ($schemaFile) {
                 $dependencies[Cache::FILES] = $schemaFile;
 
-                return self::getSchema($schemaFile);
+                return $this->getSchema($schemaFile);
             });
         }
 
@@ -85,14 +84,43 @@ class SchemaProvider
 
 
     /**
+     * @param string $currentFile
+     * @param array $schema
+     * @return array
+     */
+    private function getDefinitions($currentFile, array $schema)
+    {
+        foreach ($schema as $key => $value) {
+
+            if (is_array($value)) {
+                $schema[$key] = $this->getDefinitions($currentFile, $value);
+
+            } else if ($key === '$ref') {
+                $fileInfo = new \SplFileInfo($currentFile);
+                $definitionFile = str_replace('#', $fileInfo->getPath(), $value);
+
+                unset($schema[$key]);
+
+                $schema = array_merge($schema, (array)$this->get($definitionFile));
+            }
+        }
+
+        return $schema;
+    }
+
+
+    /**
      * @internal
      * @param string $schemaFile
      * @return \stdClass
      */
-    private static function getSchema($schemaFile)
+    private function getSchema($schemaFile)
     {
-        $schema = @file_get_contents($schemaFile);  // TODO: validate content
-        $schema = Neon::decode($schema);
+        $data = @file_get_contents($schemaFile);  // TODO: validate content
+        $data = Neon::decode($data);
+
+        $schema = Json::decode(Json::encode($data), Json::FORCE_ARRAY);
+        $schema = $this->getDefinitions($schemaFile, $schema);
 
         return Json::decode(Json::encode($schema));
     }

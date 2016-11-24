@@ -1,0 +1,11 @@
+type: object
+required: [geo, city, street, postal]
+properties:
+	geo:
+		$ref: '#/nested/nested1.neon'
+	city:
+		type: string
+	street:
+		type: string
+	postal:
+		type: number

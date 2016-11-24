@@ -1,0 +1,5 @@
+type: object
+required: [name, address]
+properties:
+	name: {type: string}
+	address: {$ref: '#/../address.neon'}

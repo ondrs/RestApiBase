@@ -29,6 +29,17 @@ class SchemaProviderTest extends Tester\TestCase
     }
 
 
+    function testGetDefinitions()
+    {
+        $schemaFile = __DIR__ . '/dummies/SchemaProviderTest.neon';
+
+        $schema = $this->schemaProvider->get($schemaFile);
+
+        Assert::same('object', $schema->properties->params->properties->address->properties->geo->type);
+        Assert::same('array', $schema->properties->params->properties->address->properties->geo->properties->address->properties->geo->type);
+    }
+
+
 }
 
 
