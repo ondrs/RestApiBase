@@ -21,7 +21,7 @@ class MockedApiPresenterTest extends Tester\TestCase
         $fakeResponse = new \ondrs\ApiBase\Services\FakeResponse($schemaProvider);
 
         $this->apiPresenter->schemaValidatorFactory = new \ondrs\ApiBase\Services\SchemaValidatorFactory($schemaProvider);
-        $this->apiPresenter->fakeResponse = $fakeResponse;
+        $this->apiPresenter->exampleResponse = new \ondrs\ApiBase\Services\ExampleResponse($fakeResponse);
 
         $_SERVER['CONTENT_TYPE'] = 'application/json';
     }

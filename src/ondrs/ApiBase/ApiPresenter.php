@@ -9,7 +9,7 @@ use Nette\Application\Request;
 use DateTime;
 use Nette\Utils\Json;
 use Nette\Utils\JsonException;
-use ondrs\ApiBase\Services\FakeResponse;
+use ondrs\ApiBase\Services\ExampleResponse;
 use ondrs\ApiBase\Services\SchemaProvider;
 use ondrs\ApiBase\Services\SchemaValidatorFactory;
 
@@ -27,8 +27,8 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
     /** @var SchemaValidatorFactory @inject */
     public $schemaValidatorFactory;
 
-    /** @var FakeResponse @inject */
-    public $fakeResponse;
+    /** @var ExampleResponse @inject */
+    public $exampleResponse;
 
 
     /** @var Request */
@@ -65,7 +65,7 @@ abstract class ApiPresenter implements Nette\Application\IPresenter
         }
 
         if ($this->mockResponses) {
-            $data = $this->fakeResponse->generate(SchemaProvider::getSchemaFile($this, SchemaProvider::RESPONSE, $action));
+            $data = $this->exampleResponse->generate($this, SchemaProvider::RESPONSE, $action);
 
         } else {
             $data = $this->dispatch($request, $action);
