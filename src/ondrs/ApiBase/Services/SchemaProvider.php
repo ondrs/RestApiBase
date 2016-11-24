@@ -23,7 +23,7 @@ class SchemaProvider
 
     public function __construct(IStorage $storage)
     {
-        $this->cache = new Cache($storage);
+        $this->cache = new Cache($storage, __CLASS__);
     }
 
 
